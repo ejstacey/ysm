@@ -1,0 +1,7 @@
+{
+    // if refresh is set to False, and db channel data exists, it'll use existing db channel data
+	// if refresh is set to True, or the db channel data doesn't exist, it'll contact youtube to get a subscription list
+    "Refresh": true,
+	// The name of the file to use for the db
+    "DbFile": "ysm.db"
+}

@@ -1,0 +1,7 @@
+settings.json
+client_secret.json
+subsDb.db
+subsDb.json
+ysm.db
+*.log
+ysm
