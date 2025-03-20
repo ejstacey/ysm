@@ -40,4 +40,4 @@ In these situations the program will give you a browser link to auth with google
 
 ### Privacy Policy and Terms of Service
 
-Please see PRIVACY-POLICY and TERMS-OF-SERVICE in the root of this repository for the respective information.
+Please see our [privacy policy](https://gitea.joyrex.net/ejstacey/ysm/raw/branch/main/PRIVACY-POLICY) and [terms of service](https://gitea.joyrex.net/ejstacey/ysm/raw/branch/main/TERMS-OF-SERVICE) in the root of this repository for the respective information.
