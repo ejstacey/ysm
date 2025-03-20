@@ -70,3 +70,8 @@ func main() {
 
 	tui.StartTea(channels, tags)
 }
+
+// err := os.WriteFile("debug.log", []byte(dump.Format(tag)), 0644)
+// if err != nil {
+// 	panic(err)
+// }

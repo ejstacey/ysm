@@ -21,6 +21,7 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"gogs.joyrex.net/ejstacey/ysm/channel"
 )
 
@@ -37,8 +38,23 @@ func (d channelListItemDelegate) Render(w io.Writer, m list.Model, index int, li
 
 	descLines := strings.Split(item.Description(), "\n")
 
-	str := fmt.Sprintf("%s\n%s\n%s\n", item.Name(), descLines[0], "tags")
-	// str := fmt.Sprintf("%s\n%s\n", item.Name(), descLines[0])
+	var tmpStyle = lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#FFFDF5")).
+		Background(lipgloss.Color("#25A065"))
+
+	var b strings.Builder
+	for _, tagId := range item.Tags() {
+		tmpTag := tags.ById[tagId]
+
+		fmt.Fprintf(&b, "%s ", tmpStyle.Render(tmpTag.Name()))
+	}
+
+	var out = b.String()
+	if out == "" {
+		out = "<none>"
+	}
+
+	str := fmt.Sprintf("%s\n%s\n%s\n", item.Name(), descLines[0], "tags: "+out)
 
 	fn := blurredListStyle.Render
 	if index == m.Index() {
@@ -64,30 +80,6 @@ func (m Model) generateChannelItems() []list.Item {
 
 	return items
 }
-
-// func (m Model) generateChannelItems() []list.Item {
-// 	var items []list.Item
-
-// 	keys := make([]string, 0, len(m.channels.ByName))
-// 	for k := range m.channels.ByName {
-// 		keys = append(keys, k)
-// 	}
-// 	sort.Strings(keys)
-
-// 	for _, key := range keys {
-// 		var channel = m.channels.ByName[key]
-// 		channel.SetDescription(channel.Description() + "\n")
-// 		var tagId int64
-// 		for _, tagId = range channel.Tags() {
-// 			channel.SetDescription(channel.Description() + "\n")
-
-// 			channel.SetDescription(channel.Description() + m.tags.ById[tagId].Name() + " ")
-// 		}
-// 		items = append(items, channel)
-// 	}
-
-// 	return items
-// }
 
 func (m Model) createChannelModifyHeader(channel channel.Channel) []string {
 	channelModifyHeaders := make([]string, 2)
@@ -117,11 +109,6 @@ func (m Model) createChannelModifyForm(channel channel.Channel) []textinput.Mode
 
 func (m Model) updateChannelModifyInput(msg tea.Msg) tea.Cmd {
 	cmds := make([]tea.Cmd, len(m.channelModifyInputs))
-
-	// err := os.WriteFile("debug.log", []byte(dump.Format(m)), 0644)
-	// if err != nil {
-	// 	panic(err)
-	// }
 
 	// Only text inputs with Focus() set will respond, so it's safe to simply
 	// update all of them here without any further logic.

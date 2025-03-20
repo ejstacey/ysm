@@ -24,11 +24,8 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"gogs.joyrex.net/ejstacey/ysm/channel"
 	"gogs.joyrex.net/ejstacey/ysm/tag"
 )
-
-var channels channel.Channels
 
 type tagListItemDelegate struct{}
 
@@ -41,10 +38,6 @@ func (d tagListItemDelegate) Render(w io.Writer, m list.Model, index int, listIt
 		return
 	}
 
-	if len(channels.ById) == 0 {
-		channels.LoadEntriesFromDb()
-	}
-
 	var tmpStyle = lipgloss.NewStyle().
 		Foreground(lipgloss.Color("#FFFDF5")).
 		Background(lipgloss.Color("#25A065"))
@@ -55,21 +48,17 @@ func (d tagListItemDelegate) Render(w io.Writer, m list.Model, index int, listIt
 
 		fmt.Fprintf(&b, "%s", tmpStyle.Render(tmpChan.Name()))
 	}
-	// err := os.WriteFile("debug.log", []byte(dump.Format(channels)), 0644)
-	// if err != nil {
-	// 	panic(err)
-	// }
 
 	var out = b.String()
 	if out == "" {
-		out = "no channels"
+		out = "<none>"
 	}
 
-	str := fmt.Sprintf("%s\n%s\n%s\n", item.Name(), item.Description(), out)
+	str := fmt.Sprintf("%s\n%s\n%s\n", item.Name(), item.Description(), "channels: "+out)
 
-	fn := blurredStyle.Render
+	fn := blurredListStyle.Render
 	if index == m.Index() {
-		fn = focusedStyle.Render
+		fn = focusedListStyle.Render
 	}
 
 	fmt.Fprint(w, fn(str))
@@ -86,10 +75,6 @@ func HexValidator(s string) error {
 	} else {
 		return nil
 	}
-	// errDebug := os.WriteFile("debug.log", []byte(dump.Format(err)), 0644)
-	// if errDebug != nil {
-	// 	panic(errDebug)
-	// }
 }
 
 func (m Model) generateTagItems() []list.Item {
@@ -133,15 +118,15 @@ func (m Model) createTagEntryForm(tag tag.Tag) []textinput.Model {
 			t.SetValue(tag.Description())
 		case 2:
 			t.Placeholder = "foreground colour (hex)"
-			t.CharLimit = 7
-			t.Width = 50
+			t.CharLimit = 6
+			t.Width = 6
 			t.Prompt = " #"
 			t.Validate = HexValidator
 			t.SetValue(tag.FgColour())
 		case 3:
 			t.Placeholder = "background color (hex)"
-			t.CharLimit = 7
-			t.Width = 50
+			t.CharLimit = 6
+			t.Width = 6
 			t.Prompt = " #"
 			t.Validate = HexValidator
 			t.SetValue(tag.BgColour())

@@ -113,11 +113,6 @@ func (t *Tag) SetName(x string) error {
 		return errors.New("cannot set name, missing id")
 	}
 
-	// err = os.WriteFile("debug.log", []byte(dump.Format(t)), 0644)
-	// if err != nil {
-	// 	panic(err)
-	// }
-
 	ctx := context.Background()
 
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)

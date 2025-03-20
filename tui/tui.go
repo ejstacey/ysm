@@ -402,6 +402,9 @@ var (
 			key.WithHelp("<space>", "select item"),
 		),
 	}
+
+	channels channel.Channels
+	tags     tag.Tags
 )
 
 const (
@@ -680,10 +683,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 							utils.HandleError(err, "updating tag bgColour")
 						} else {
 							tag := m.list.SelectedItem().(tag.Tag)
-							// err := os.WriteFile("debug.log", []byte(dump.Format(tag)), 0644)
-							// if err != nil {
-							// 	panic(err)
-							// }
 							err := tag.SetName(m.tagEntryInputs[0].Value())
 							utils.HandleError(err, "updating tag name")
 							err = tag.SetDescription(m.tagEntryInputs[1].Value())
@@ -819,10 +818,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				// If so, create it.
 				if s == "enter" && m.channelModifyFocus == totalLength {
 					channel := m.list.SelectedItem().(channel.Channel)
-					// err := os.WriteFile("debug.log", []byte(dump.Format(tag)), 0644)
-					// if err != nil {
-					// 	panic(err)
-					// }
 					err := channel.SetNotes(m.channelModifyInputs[0].Value())
 					utils.HandleError(err, "updating channel notes")
 					m.channelModifyFocus = 0
@@ -834,6 +829,24 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						var found bool = false
 						for _, currTagId := range m.selectedChannel.Tags() {
 							if int64(currTagId) == tag.Id() {
+								found = true
+							}
+						}
+						// if it's found in the tags, of the selectedChannel, that means we're
+						// removing it
+						// otherwise we're adding it
+						if !found {
+							submitIds = append(submitIds, tag.Id())
+						}
+					}
+					// include existing stuff so we don't lose it.
+					for _, currTagId := range m.selectedChannel.Tags() {
+						tag := m.tags.ById[currTagId]
+						var found bool = false
+						for _, orderId := range m.selectedTagIds {
+							testTag := m.tags.ByName[sortedTags[orderId]]
+
+							if testTag.Id() == tag.Id() {
 								found = true
 							}
 						}
@@ -870,24 +883,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				switch m.channelModifyFocus {
 				// notes field
 				case 0:
-					// Set focused state
 					cmds[0] = m.channelModifyInputs[0].Focus()
 					m.channelModifyInputs[0].PromptStyle = focusedButtonStyle
 					m.channelModifyInputs[0].TextStyle = focusedButtonStyle
 				// tags
 				case 1:
-					// Set focused state
-					// if m.selectedTagId > len(m.tags.ById) {
-					// 	m.selectedTagId = 0
-					// } else if m.selectedTagId < 0 {
-					// 	m.selectedTagId = len(m.tags.ById)
-					// }
 					m.channelModifyInputs[0].Blur()
 					m.channelModifyInputs[0].PromptStyle = blurredButtonStyle
 					m.channelModifyInputs[0].TextStyle = blurredButtonStyle
 				// submit button
 				case 2:
-					// Set focused state
 					m.channelModifyInputs[0].Blur()
 					m.channelModifyInputs[0].PromptStyle = blurredButtonStyle
 					m.channelModifyInputs[0].TextStyle = blurredButtonStyle
@@ -1045,10 +1050,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				m.colourPickerX = 0
 				m.colourPickerY = 0
-				// err := os.WriteFile("debug.log", []byte(dump.Format(m)), 0644)
-				// if err != nil {
-				// 	panic(err)
-				// }
 
 				return m, nil
 
@@ -1068,6 +1069,8 @@ func (m Model) View() string {
 	var out string
 	switch m.current {
 	case "channel", "tag":
+		channels = m.channels
+		tags = m.tags
 		out = m.list.View()
 
 	case "tagEntry":
@@ -1076,27 +1079,39 @@ func (m Model) View() string {
 		var buttonRef *lipgloss.Style
 
 		// do tagentry by hand
+		if m.tagEntryInputs[0].Value() != m.selectedTag.Name() {
+			m.tagEntryInputs[0].TextStyle = m.tagEntryInputs[0].TextStyle.Background(unsavedColour)
+		}
 		b.WriteString(fmt.Sprintf("%24s: %s\n", "tag name", m.tagEntryInputs[0].View()))
+		if m.tagEntryInputs[1].Value() != m.selectedTag.Description() {
+			m.tagEntryInputs[1].TextStyle = m.tagEntryInputs[1].TextStyle.Background(unsavedColour)
+		}
 		b.WriteString(fmt.Sprintf("%24s: %s\n", "tag description", m.tagEntryInputs[1].View()))
 		if m.tagEntryFocus == 3 {
 			buttonRef = &focusedButtonStyle
 		} else {
 			buttonRef = &blurredButtonStyle
 		}
-		b.WriteString(fmt.Sprintf("%24s: %s [ %s ]\n", "foreground colour (hex)", m.tagEntryInputs[2].View(), buttonRef.Render("ColourPicker")))
+		if m.tagEntryInputs[2].Value() != m.selectedTag.FgColour() {
+			m.tagEntryInputs[2].TextStyle = m.tagEntryInputs[2].TextStyle.Background(unsavedColour)
+		}
+		b.WriteString(fmt.Sprintf("%24s: %s %s\n", "foreground colour (hex)", m.tagEntryInputs[2].View(), buttonRef.Render("[ ColourPicker ]")))
 		if m.tagEntryFocus == 5 {
 			buttonRef = &focusedButtonStyle
 		} else {
 			buttonRef = &blurredButtonStyle
 		}
-		b.WriteString(fmt.Sprintf("%24s: %s [ %s ]\n", "background colour (hex)", m.tagEntryInputs[3].View(), buttonRef.Render("ColourPicker")))
+		if m.tagEntryInputs[3].Value() != m.selectedTag.BgColour() {
+			m.tagEntryInputs[3].TextStyle = m.tagEntryInputs[3].TextStyle.Background(unsavedColour)
+		}
+		b.WriteString(fmt.Sprintf("%24s: %s %s \n", "background colour (hex)", m.tagEntryInputs[3].View(), buttonRef.Render("[ ColourPicker ]")))
 
 		if m.tagEntryFocus == 6 {
 			buttonRef = &focusedButtonStyle
 		} else {
 			buttonRef = &blurredButtonStyle
 		}
-		var button = fmt.Sprintf("[ %s ]", buttonRef.Render("Submit"))
+		var button = buttonRef.Render("[ Submit ]")
 		fmt.Fprintf(&b, "\n%s\n\n\n", button)
 
 		var style = tagDisplayStyle.Width(len(m.tagEntryInputs[0].Value())).Background(lipgloss.Color("#" + m.tagEntryInputs[3].Value())).Foreground(lipgloss.Color("#" + m.tagEntryInputs[2].Value()))
@@ -1117,11 +1132,6 @@ func (m Model) View() string {
 		}
 		b.WriteString(m.channelModifyInputs[0].View())
 		b.WriteString("\n")
-
-		// err := os.WriteFile(fmt.Sprintf("test.log"), []byte(dump.Format(m.selectedChannel.Notes(), m.channelModifyInputs[0].Value())), 0644)
-		// if err != nil {
-		// 	panic(err)
-		// }
 
 		sortedTags := slices.Sorted(maps.Keys(m.tags.ByName))
 
@@ -1181,11 +1191,6 @@ func (m Model) View() string {
 
 			output = lipgloss.JoinHorizontal(lipgloss.Center, output, style.Render(tagName))
 
-			// err := os.WriteFile(fmt.Sprintf("test%d.log", i), []byte(dump.Format(m.selectedChannel.Tags(), tag, m.selectedTagIds, found)), 0644)
-			// if err != nil {
-			// 	panic(err)
-			// }
-
 			if (colCount > 2 && curCol > 2 && int(math.Mod(float64(colCount), float64(i+1))) == 0) || i == len(sortedTags)-1 || (colCount <= 2 && curCol+1 == colCount) || curCol+2 > colCount {
 				b.WriteString(output)
 				output = ""
@@ -1202,10 +1207,8 @@ func (m Model) View() string {
 		} else {
 			buttonRef = &blurredButtonStyle
 		}
-		var button = fmt.Sprintf("[ %s ]", buttonRef.Render("Submit"))
+		var button = buttonRef.Render("[ Submit ]")
 		fmt.Fprintf(&b, "\n\n%s\n\n", button)
-
-		// b.WriteString(fmt.Sprintf("channelModifyFocus: %d, len(m.channelModifyInputs)+1: %d, m.selectedTagId: %d", m.channelModifyFocus, len(m.channelModifyInputs)+1, m.selectedTagId))
 
 		out = b.String()
 
@@ -1303,11 +1306,6 @@ func StartTea(channels channel.Channels, tags tag.Tags) {
 
 	m.current = "channel"
 	m.keys = listKeys
-
-	// err := os.WriteFile("debug-first.log", []byte(dump.Format(m)), 0644)
-	// if err != nil {
-	// 	panic(err)
-	// }
 
 	P = tea.NewProgram(m, tea.WithAltScreen())
 	if _, err := P.Run(); err != nil {
