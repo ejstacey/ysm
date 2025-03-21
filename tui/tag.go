@@ -16,7 +16,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 
@@ -39,14 +41,26 @@ func (d tagListItemDelegate) Render(w io.Writer, m list.Model, index int, listIt
 	}
 
 	var tmpStyle = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#FFFDF5")).
-		Background(lipgloss.Color("#25A065"))
+		Foreground(lipgloss.Color("#" + item.FgColour())).
+		Background(lipgloss.Color("#" + item.BgColour()))
+
+	var tagChannels = make(map[string]string)
 
 	var b strings.Builder
 	for _, channelId := range item.Channels() {
-		tmpChan := channels.ById[channelId]
+		tmpChannel := channels.ById[channelId]
 
-		fmt.Fprintf(&b, "%s", tmpStyle.Render(tmpChan.Name()))
+		channelName := tmpChannel.Name()
+		tagChannels[channelName] = tmpStyle.Render(tmpChannel.Name())
+	}
+
+	sortedTags := slices.Sorted(maps.Keys(tagChannels))
+	for i, tagName := range sortedTags {
+		tagOutput := tagChannels[tagName]
+		b.WriteString(tagOutput)
+		if i != len(sortedTags)-1 {
+			b.WriteString(", ")
+		}
 	}
 
 	var out = b.String()

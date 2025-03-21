@@ -15,6 +15,8 @@ package tui
 import (
 	"fmt"
 	"io"
+	"maps"
+	"slices"
 	"sort"
 	"strings"
 
@@ -38,15 +40,25 @@ func (d channelListItemDelegate) Render(w io.Writer, m list.Model, index int, li
 
 	descLines := strings.Split(item.Description(), "\n")
 
-	var tmpStyle = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#FFFDF5")).
-		Background(lipgloss.Color("#25A065"))
+	var channelTags = make(map[string]string)
 
 	var b strings.Builder
 	for _, tagId := range item.Tags() {
 		tmpTag := tags.ById[tagId]
 
-		fmt.Fprintf(&b, "%s ", tmpStyle.Render(tmpTag.Name()))
+		var style = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#" + tmpTag.FgColour())).
+			Background(lipgloss.Color("#" + tmpTag.BgColour()))
+
+		tagName := tmpTag.Name()
+		channelTags[tagName] = style.Render(tmpTag.Name())
+	}
+
+	sortedTags := slices.Sorted(maps.Keys(channelTags))
+	for _, tagName := range sortedTags {
+		tagOutput := channelTags[tagName]
+		b.WriteString(tagOutput)
+		b.WriteRune(' ')
 	}
 
 	var out = b.String()
