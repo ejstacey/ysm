@@ -467,12 +467,26 @@ func newListKeyMap() *listKeyMap {
 	}
 }
 
+func newChannelModifyKeyMap() *channelModifyKeyMap {
+	return &channelModifyKeyMap{
+		spaceKey:    keyList["spaceKey"],
+		tabKey:      keyList["tabKey"],
+		shiftTabKey: keyList["shiftTabKey"],
+		enterKey:    keyList["enterKey"],
+		upKey:       keyList["upKey"],
+		downKey:     keyList["downKey"],
+		leftKey:     keyList["leftKey"],
+		rightKey:    keyList["rightKey"],
+		escKey:      keyList["escKey"],
+	}
+}
+
 type Model struct {
 	current              string
 	list                 list.Model
 	channels             channel.Channels
 	tags                 tag.Tags
-	keys                 *listKeyMap
+	listKeys             *listKeyMap
 	help                 help.Model // this doesn't get used on list pages. lists have their own built-in help
 	selectedChannel      channel.Channel
 	selectedTag          tag.Tag
@@ -517,11 +531,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case tea.KeyMsg:
 			switch {
-			case key.Matches(msg, m.keys.cKey):
+			case key.Matches(msg, m.listKeys.cKey):
 				m.current = "channel"
 				width := m.list.Width()
 				height := m.list.Height()
-				m.list = list.New(m.generateChannelItems(), channelListItemDelegate{}, width, height-1)
+				m.list = list.New(m.generateChannelItems(), channelListItemDelegate{}, width, height)
 				m.list.Title = "YSM - Channel View"
 				m.list.Styles.Title = titleStyle
 				listKeys := newListKeyMap()
@@ -549,12 +563,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 				return m, nil
 
-			case key.Matches(msg, m.keys.tKey):
+			case key.Matches(msg, m.listKeys.tKey):
 				m.current = "tag"
 				width := m.list.Width()
 				height := m.list.Height()
-
-				m.list = list.New(m.generateTagItems(), tagListItemDelegate{}, width, height-1)
+				m.list = list.New(m.generateTagItems(), tagListItemDelegate{}, width, height)
 				m.list.Title = "YSM - Tag View"
 				m.list.Styles.Title = titleStyle
 
@@ -588,7 +601,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				return m, nil
 
-			case key.Matches(msg, m.keys.nKey):
+			case key.Matches(msg, m.listKeys.nKey):
 				if m.current != "tag" {
 					return m, nil
 				}
@@ -599,21 +612,21 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.current = "tagEntry"
 				return m, nil
 
-			case key.Matches(msg, m.keys.pKey):
+			case key.Matches(msg, m.listKeys.pKey):
 				switch m.current {
 				case "channel", "tag":
 					m.list.SetShowPagination(!m.list.ShowPagination())
 					return m, nil
 				}
 
-			case key.Matches(msg, m.keys.hKey):
+			case key.Matches(msg, m.listKeys.hKey):
 				switch m.current {
 				case "channel", "tag":
 					m.list.SetShowHelp(!m.list.ShowHelp())
 					return m, nil
 				}
 
-			case key.Matches(msg, m.keys.enterKey, m.keys.mKey):
+			case key.Matches(msg, m.listKeys.enterKey, m.listKeys.mKey):
 				switch m.current {
 				case "channel":
 					channel := m.list.SelectedItem().(channel.Channel)
@@ -621,8 +634,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.channelModifyInputs = m.createChannelModifyForm(channel)
 					m.selectedChannel = channel
 					m.current = "channelModify"
-					// m.help = help.New()
-					// m.help
+					m.help = help.New()
+					keyList := newChannelModifyKeyMap()
+					m.help.View(keyList)
 					return m, nil
 				case "tag":
 					tag := m.list.SelectedItem().(tag.Tag)
@@ -633,7 +647,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return m, nil
 				}
 
-			case key.Matches(msg, m.keys.dKey):
+			case key.Matches(msg, m.listKeys.dKey):
 				switch m.current {
 				case "tag":
 					tag := m.list.SelectedItem().(tag.Tag)
@@ -643,7 +657,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return m, nil
 				}
 
-			case key.Matches(msg, m.keys.qKey):
+			case key.Matches(msg, m.listKeys.qKey):
 				return m, tea.Quit
 			}
 		}
@@ -658,11 +672,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case tea.KeyMsg:
 			switch {
-			case key.Matches(msg, m.keys.escKey):
+			case key.Matches(msg, m.listKeys.escKey):
 				m.current = "tag"
 				return m, nil
 
-			case key.Matches(msg, m.keys.tabKey, m.keys.shiftTabKey, m.keys.enterKey, m.keys.upKey, m.keys.downKey):
+			case key.Matches(msg, m.listKeys.tabKey, m.listKeys.shiftTabKey, m.listKeys.enterKey, m.listKeys.upKey, m.listKeys.downKey):
 				s := msg.String()
 
 				// Did the user press enter while the submit button was focused?
@@ -805,11 +819,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case tea.KeyMsg:
 			switch {
-			case key.Matches(msg, m.keys.escKey):
+			case key.Matches(msg, m.listKeys.escKey):
 				m.current = "channel"
 				return m, nil
 
-			case key.Matches(msg, m.keys.tabKey, m.keys.shiftTabKey, m.keys.enterKey, m.keys.upKey, m.keys.downKey):
+			case key.Matches(msg, m.listKeys.tabKey, m.listKeys.shiftTabKey, m.listKeys.enterKey, m.listKeys.upKey, m.listKeys.downKey):
 				s := msg.String()
 
 				var totalLength = len(m.channelModifyInputs) + 1
@@ -899,7 +913,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 
 				return m, tea.Batch(cmds...)
-			case key.Matches(msg, m.keys.leftKey, m.keys.rightKey):
+			case key.Matches(msg, m.listKeys.leftKey, m.listKeys.rightKey):
 				s := msg.String()
 
 				var totalLength = len(m.tags.ById)
@@ -952,11 +966,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case tea.KeyMsg:
 			switch {
-			case key.Matches(msg, m.keys.escKey, m.keys.qKey):
+			case key.Matches(msg, m.listKeys.escKey, m.listKeys.qKey):
 				m.current = "tag"
 				return m, nil
 
-			case key.Matches(msg, m.keys.tabKey, m.keys.shiftTabKey, m.keys.enterKey, m.keys.upKey, m.keys.downKey, m.keys.leftKey, m.keys.rightKey):
+			case key.Matches(msg, m.listKeys.tabKey, m.listKeys.shiftTabKey, m.listKeys.enterKey, m.listKeys.upKey, m.listKeys.downKey, m.listKeys.leftKey, m.listKeys.rightKey):
 				s := msg.String()
 
 				// Did the user press enter while the submit button was focused?
@@ -1005,7 +1019,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case tea.KeyMsg:
 			switch {
-			case key.Matches(msg, m.keys.upKey, m.keys.shiftTabKey):
+			case key.Matches(msg, m.listKeys.upKey, m.listKeys.shiftTabKey):
 				m.colourPickerY--
 
 				if m.colourPickerY < 0 {
@@ -1014,7 +1028,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.selectedBackColour = colours[m.colourPickerX][m.colourPickerY]
 				return m, nil
 
-			case key.Matches(msg, m.keys.downKey, m.keys.tabKey):
+			case key.Matches(msg, m.listKeys.downKey, m.listKeys.tabKey):
 				m.colourPickerY++
 
 				if m.colourPickerY > len(colours[0])-1 {
@@ -1023,7 +1037,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.selectedBackColour = colours[m.colourPickerX][m.colourPickerY]
 				return m, nil
 
-			case key.Matches(msg, m.keys.leftKey):
+			case key.Matches(msg, m.listKeys.leftKey):
 				m.colourPickerX--
 
 				if m.colourPickerX < 0 {
@@ -1032,7 +1046,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.selectedBackColour = colours[m.colourPickerX][m.colourPickerY]
 				return m, nil
 
-			case key.Matches(msg, m.keys.rightKey):
+			case key.Matches(msg, m.listKeys.rightKey):
 				m.colourPickerX++
 
 				if m.colourPickerX > len(colours)-1 {
@@ -1041,7 +1055,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.selectedBackColour = colours[m.colourPickerX][m.colourPickerY]
 				return m, nil
 
-			case key.Matches(msg, m.keys.enterKey):
+			case key.Matches(msg, m.listKeys.enterKey):
 				m.current = "tagEntry"
 				if m.tagEntryFocus == 3 {
 					m.tagEntryInputs[2].SetValue(strings.ReplaceAll(m.selectedBackColour, "#", ""))
@@ -1053,7 +1067,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 				return m, nil
 
-			case key.Matches(msg, m.keys.escKey, m.keys.qKey):
+			case key.Matches(msg, m.listKeys.escKey, m.listKeys.qKey):
 				m.current = "tagEntry"
 				return m, nil
 			}
@@ -1287,25 +1301,26 @@ func StartTea(channels channel.Channels, tags tag.Tags) {
 	m.channels = channels
 	m.tags = tags
 
+	m.current = "channel"
 	m.list = list.New(m.generateChannelItems(), channelListItemDelegate{}, 0, 0)
-
 	m.list.Title = "YSM - Channel View"
 	m.list.Styles.Title = titleStyle
 	m.list.AdditionalShortHelpKeys = func() []key.Binding {
 		return []key.Binding{
 			listKeys.tKey,
 			listKeys.pKey,
+			listKeys.enterKey,
 		}
 	}
 	m.list.AdditionalFullHelpKeys = func() []key.Binding {
 		return []key.Binding{
 			listKeys.tKey,
 			listKeys.pKey,
+			listKeys.enterKey,
 		}
 	}
 
-	m.current = "channel"
-	m.keys = listKeys
+	m.listKeys = listKeys
 
 	P = tea.NewProgram(m, tea.WithAltScreen())
 	if _, err := P.Run(); err != nil {

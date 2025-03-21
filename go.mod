@@ -9,11 +9,6 @@ require (
 )
 
 require (
-	github.com/gookit/color v1.5.4 // indirect
-	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
-)
-
-require (
 	cloud.google.com/go/auth v0.14.1 // indirect
 	cloud.google.com/go/auth/oauth2adapt v0.2.7 // indirect
 	cloud.google.com/go/compute/metadata v0.6.0 // indirect
@@ -56,7 +51,6 @@ require (
 	github.com/charmbracelet/bubbletea v1.2.4
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/gookit/goutil v0.6.18
 	golang.org/x/net v0.34.0 // indirect
 	golang.org/x/oauth2 v0.25.0
 	golang.org/x/sys v0.29.0 // indirect

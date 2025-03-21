@@ -16,6 +16,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"maps"
 	"regexp"
 	"slices"
@@ -26,6 +27,7 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/devkvlt/hexer"
 	"gogs.joyrex.net/ejstacey/ysm/tag"
 )
 
@@ -40,18 +42,44 @@ func (d tagListItemDelegate) Render(w io.Writer, m list.Model, index int, listIt
 		return
 	}
 
-	var tmpStyle = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#" + item.FgColour())).
-		Background(lipgloss.Color("#" + item.BgColour()))
-
 	var tagChannels = make(map[string]string)
 
 	var b strings.Builder
-	for _, channelId := range item.Channels() {
+	for i, channelId := range item.Channels() {
 		tmpChannel := channels.ById[channelId]
 
+		var colour string
+		var row = i + 1
+		var col = i + 1
+		if row >= 12 {
+			row = 0
+		}
+		if col >= 18 {
+			col = 0
+		}
+		colour = colours[col][row]
+
+		var textColour_64 float64
+		textColour, err := hexer.Invert(colour)
+		if err != nil {
+			log.Fatal(err)
+		}
+		textColour_64, err = hexer.Lightness(textColour)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if textColour_64 > 50 {
+			textColour = "#FFFFFF"
+		} else {
+			textColour = "#000000"
+		}
+
+		var style = lipgloss.NewStyle().
+			Foreground(lipgloss.Color(textColour)).
+			Background(lipgloss.Color(colour))
+
 		channelName := tmpChannel.Name()
-		tagChannels[channelName] = tmpStyle.Render(tmpChannel.Name())
+		tagChannels[channelName] = style.Render(tmpChannel.Name())
 	}
 
 	sortedTags := slices.Sorted(maps.Keys(tagChannels))
