@@ -332,7 +332,7 @@ var (
 		},
 	}
 
-	keyList = map[string]key.Binding{
+	listKeyList = map[string]key.Binding{
 		"cKey": key.NewBinding(
 			key.WithKeys("c"),
 			key.WithHelp("c", "channel view"),
@@ -371,7 +371,7 @@ var (
 		),
 		"shiftTabKey": key.NewBinding(
 			key.WithKeys("shift+tab"),
-			key.WithHelp("<ahift-tab>", "previous option"),
+			key.WithHelp("<shift-tab>", "previous option"),
 		),
 		"enterKey": key.NewBinding(
 			key.WithKeys("enter"),
@@ -385,21 +385,40 @@ var (
 			key.WithKeys("down"),
 			key.WithHelp("<down>", "next option"),
 		),
-		"leftKey": key.NewBinding(
-			key.WithKeys("left"),
-			key.WithHelp("<left>", "previous option"),
-		),
-		"rightKey": key.NewBinding(
-			key.WithKeys("right"),
-			key.WithHelp("<right>", "next option"),
-		),
 		"escKey": key.NewBinding(
 			key.WithKeys("esc"),
 			key.WithHelp("<esc>", "back out"),
 		),
+	}
+
+	channelModifyKeyList = map[string]key.Binding{
+		"nextKey": key.NewBinding(
+			key.WithKeys("down", "tab"),
+			key.WithHelp("<down>/<tab>", "next option"),
+		),
+		"prevKey": key.NewBinding(
+			key.WithKeys("up", "shift+tab"),
+			key.WithHelp("<up>/<shift-tab>", "previous option"),
+		),
+		"escKey": key.NewBinding(
+			key.WithKeys("esc"),
+			key.WithHelp("<esc>", "back out to channel view"),
+		),
+		"enterKey": key.NewBinding(
+			key.WithKeys("enter"),
+			key.WithHelp("<enter>", "save changes"),
+		),
+		"leftKey": key.NewBinding(
+			key.WithKeys("left"),
+			key.WithHelp("<left>", "move tag selector to left"),
+		),
+		"rightKey": key.NewBinding(
+			key.WithKeys("right"),
+			key.WithHelp("<right>", "move tag selector to right"),
+		),
 		"spaceKey": key.NewBinding(
 			key.WithKeys(" "),
-			key.WithHelp("<space>", "select item"),
+			key.WithHelp("<space>", "select or unselect tag"),
 		),
 	}
 
@@ -415,16 +434,85 @@ const (
 	tagEntryDeleteOperationId int = 2
 )
 
-type channelModifyKeyMap struct {
-	spaceKey    key.Binding
-	tabKey      key.Binding
-	shiftTabKey key.Binding
-	enterKey    key.Binding
-	upKey       key.Binding
-	downKey     key.Binding
-	leftKey     key.Binding
-	rightKey    key.Binding
-	escKey      key.Binding
+type channelModifyNotesKeyMap struct {
+	NextKey key.Binding
+	PrevKey key.Binding
+	EscKey  key.Binding
+}
+
+func (k channelModifyNotesKeyMap) ShortHelp() []key.Binding {
+	return []key.Binding{k.NextKey, k.PrevKey, k.EscKey}
+}
+func (k channelModifyNotesKeyMap) FullHelp() [][]key.Binding {
+	return [][]key.Binding{
+		{k.NextKey, k.PrevKey, k.EscKey},
+		{},
+	}
+}
+
+func newChannelModifyNotesKeyMap() *channelModifyNotesKeyMap {
+	return &channelModifyNotesKeyMap{
+		NextKey: channelModifyKeyList["nextKey"],
+		PrevKey: channelModifyKeyList["prevKey"],
+		EscKey:  channelModifyKeyList["escKey"],
+	}
+}
+
+type channelModifyTagSelectKeyMap struct {
+	NextKey  key.Binding
+	PrevKey  key.Binding
+	SpaceKey key.Binding
+	LeftKey  key.Binding
+	RightKey key.Binding
+	EscKey   key.Binding
+}
+
+func (k channelModifyTagSelectKeyMap) ShortHelp() []key.Binding {
+	return []key.Binding{k.NextKey, k.PrevKey, k.LeftKey, k.RightKey, k.SpaceKey, k.EscKey}
+}
+func (k channelModifyTagSelectKeyMap) FullHelp() [][]key.Binding {
+	return [][]key.Binding{
+		{k.NextKey, k.PrevKey, k.EscKey},
+		{k.LeftKey, k.RightKey, k.SpaceKey},
+	}
+}
+
+func newChannelModifyTagSelectKeyMap() *channelModifyTagSelectKeyMap {
+	return &channelModifyTagSelectKeyMap{
+		NextKey:  channelModifyKeyList["nextKey"],
+		PrevKey:  channelModifyKeyList["prevKey"],
+		SpaceKey: channelModifyKeyList["spaceKey"],
+		LeftKey:  channelModifyKeyList["leftKey"],
+		RightKey: channelModifyKeyList["rightKey"],
+		EscKey:   channelModifyKeyList["escKey"],
+	}
+}
+
+type channelModifySubmitKeyMap struct {
+	NextKey  key.Binding
+	PrevKey  key.Binding
+	EnterKey key.Binding
+	EscKey   key.Binding
+}
+
+func (k channelModifySubmitKeyMap) ShortHelp() []key.Binding {
+	return []key.Binding{k.NextKey, k.PrevKey, k.EnterKey, k.EscKey}
+}
+
+func (k channelModifySubmitKeyMap) FullHelp() [][]key.Binding {
+	return [][]key.Binding{
+		{k.NextKey, k.PrevKey, k.EscKey},
+		{k.EnterKey},
+	}
+}
+
+func newChannelModifySubmitKeyMap() *channelModifySubmitKeyMap {
+	return &channelModifySubmitKeyMap{
+		NextKey:  channelModifyKeyList["nextKey"],
+		PrevKey:  channelModifyKeyList["prevKey"],
+		EnterKey: channelModifyKeyList["enterKey"],
+		EscKey:   channelModifyKeyList["escKey"],
+	}
 }
 
 type listKeyMap struct {
@@ -448,62 +536,51 @@ type listKeyMap struct {
 
 func newListKeyMap() *listKeyMap {
 	return &listKeyMap{
-		cKey:        keyList["cKey"],
-		tKey:        keyList["tKey"],
-		pKey:        keyList["pKey"],
-		hKey:        keyList["hKey"],
-		qKey:        keyList["qKey"],
-		nKey:        keyList["nKey"],
-		dKey:        keyList["dKey"],
-		mKey:        keyList["mKey"],
-		tabKey:      keyList["tabKey"],
-		shiftTabKey: keyList["shiftTabKey"],
-		enterKey:    keyList["enterKey"],
-		upKey:       keyList["upKey"],
-		downKey:     keyList["downKey"],
-		leftKey:     keyList["leftKey"],
-		rightKey:    keyList["rightKey"],
-		escKey:      keyList["escKey"],
-	}
-}
-
-func newChannelModifyKeyMap() *channelModifyKeyMap {
-	return &channelModifyKeyMap{
-		spaceKey:    keyList["spaceKey"],
-		tabKey:      keyList["tabKey"],
-		shiftTabKey: keyList["shiftTabKey"],
-		enterKey:    keyList["enterKey"],
-		upKey:       keyList["upKey"],
-		downKey:     keyList["downKey"],
-		leftKey:     keyList["leftKey"],
-		rightKey:    keyList["rightKey"],
-		escKey:      keyList["escKey"],
+		cKey:        listKeyList["cKey"],
+		tKey:        listKeyList["tKey"],
+		pKey:        listKeyList["pKey"],
+		hKey:        listKeyList["hKey"],
+		qKey:        listKeyList["qKey"],
+		nKey:        listKeyList["nKey"],
+		dKey:        listKeyList["dKey"],
+		mKey:        listKeyList["mKey"],
+		tabKey:      listKeyList["tabKey"],
+		shiftTabKey: listKeyList["shiftTabKey"],
+		enterKey:    listKeyList["enterKey"],
+		upKey:       listKeyList["upKey"],
+		downKey:     listKeyList["downKey"],
+		leftKey:     listKeyList["leftKey"],
+		rightKey:    listKeyList["rightKey"],
+		escKey:      listKeyList["escKey"],
 	}
 }
 
 type Model struct {
-	current              string
-	list                 list.Model
-	channels             channel.Channels
-	tags                 tag.Tags
-	listKeys             *listKeyMap
-	help                 help.Model // this doesn't get used on list pages. lists have their own built-in help
-	selectedChannel      channel.Channel
-	selectedTag          tag.Tag
-	selectedChannelId    int
-	selectedTagId        int
-	selectedTagIds       []int
-	tagEntryFocus        int
-	tagEntryOperation    int
-	tagDeleteFocus       int
-	tagDeleteInputs      []string
-	tagEntryInputs       []textinput.Model
-	channelModifyFocus   int
-	channelModifyHeaders []string
-	channelModifyInputs  []textinput.Model
-	colourPickerX        int
-	colourPickerY        int
-	selectedBackColour   string
+	current                      string
+	list                         list.Model
+	channels                     channel.Channels
+	tags                         tag.Tags
+	listKeys                     *listKeyMap
+	channelModifyNotesKeyMap     *channelModifyNotesKeyMap
+	channelModifyTagSelectKeyMap *channelModifyTagSelectKeyMap
+	channelModifySubmitKeyMap    *channelModifySubmitKeyMap
+	help                         help.Model // this doesn't get used on list pages. lists have their own built-in help
+	selectedChannel              channel.Channel
+	selectedTag                  tag.Tag
+	selectedChannelId            int
+	selectedTagId                int
+	selectedTagIds               []int
+	tagEntryFocus                int
+	tagEntryOperation            int
+	tagDeleteFocus               int
+	tagDeleteInputs              []string
+	tagEntryInputs               []textinput.Model
+	channelModifyFocus           int
+	channelModifyHeaders         []string
+	channelModifyInputs          []textinput.Model
+	colourPickerX                int
+	colourPickerY                int
+	selectedBackColour           string
 }
 
 func (m Model) Init() tea.Cmd {
@@ -635,8 +712,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.selectedChannel = channel
 					m.current = "channelModify"
 					m.help = help.New()
-					keyList := newChannelModifyKeyMap()
-					m.help.View(keyList)
+					m.channelModifyNotesKeyMap = newChannelModifyNotesKeyMap()
+					m.channelModifyTagSelectKeyMap = newChannelModifyTagSelectKeyMap()
+					m.channelModifySubmitKeyMap = newChannelModifySubmitKeyMap()
+					m.help.ShowAll = true
 					return m, nil
 				case "tag":
 					tag := m.list.SelectedItem().(tag.Tag)
@@ -819,18 +898,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case tea.KeyMsg:
 			switch {
-			case key.Matches(msg, m.listKeys.escKey):
+			case key.Matches(msg, channelModifyKeyList["escKey"]):
 				m.current = "channel"
 				return m, nil
 
-			case key.Matches(msg, m.listKeys.tabKey, m.listKeys.shiftTabKey, m.listKeys.enterKey, m.listKeys.upKey, m.listKeys.downKey):
-				s := msg.String()
-
+			case key.Matches(msg, channelModifyKeyList["enterKey"]):
 				var totalLength = len(m.channelModifyInputs) + 1
 
 				// Did the user press enter while the submit button was focused?
 				// If so, create it.
-				if s == "enter" && m.channelModifyFocus == totalLength {
+				if m.channelModifyFocus == totalLength {
 					channel := m.list.SelectedItem().(channel.Channel)
 					err := channel.SetNotes(m.channelModifyInputs[0].Value())
 					utils.HandleError(err, "updating channel notes")
@@ -878,7 +955,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.list.SetItems(m.generateChannelItems())
 					m.current = "channel"
 					return m, nil
+				} else {
+					cmd = m.updateChannelModifyInput(msg)
 				}
+
+			case key.Matches(msg, channelModifyKeyList["nextKey"], channelModifyKeyList["prevKey"]):
+				s := msg.String()
+
+				var totalLength = len(m.channelModifyInputs) + 1
 
 				// Cycle indexes
 				if s == "up" || s == "shift+tab" {
@@ -913,7 +997,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 
 				return m, tea.Batch(cmds...)
-			case key.Matches(msg, m.listKeys.leftKey, m.listKeys.rightKey):
+			case key.Matches(msg, channelModifyKeyList["leftKey"], channelModifyKeyList["rightKey"]):
 				s := msg.String()
 
 				var totalLength = len(m.tags.ById)
@@ -933,7 +1017,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				} else {
 					cmd = m.updateChannelModifyInput(msg)
 				}
-			case key.Matches(msg, keyList["spaceKey"]):
+			case key.Matches(msg, channelModifyKeyList["spaceKey"]):
 				if m.channelModifyFocus == 1 {
 					var newTagIds []int
 					var found bool = false
@@ -1223,6 +1307,19 @@ func (m Model) View() string {
 		}
 		var button = buttonRef.Render("[ Submit ]")
 		fmt.Fprintf(&b, "\n\n%s\n\n", button)
+
+		style := lipgloss.NewStyle().Background(unsavedColour)
+		b.WriteString(style.Render("this colour signifies there's unsaved changes"))
+		b.WriteRune('\n')
+		b.WriteRune('\n')
+		switch m.channelModifyFocus {
+		case 0:
+			b.WriteString(m.help.View(m.channelModifyNotesKeyMap))
+		case 1:
+			b.WriteString(m.help.View(m.channelModifyTagSelectKeyMap))
+		case 2:
+			b.WriteString(m.help.View(m.channelModifySubmitKeyMap))
+		}
 
 		out = b.String()
 
