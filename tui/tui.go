@@ -422,6 +422,25 @@ var (
 		),
 	}
 
+	tagModifyKeyList = map[string]key.Binding{
+		"nextKey": key.NewBinding(
+			key.WithKeys("down", "tab"),
+			key.WithHelp("<down>/<tab>", "next option"),
+		),
+		"prevKey": key.NewBinding(
+			key.WithKeys("up", "shift+tab"),
+			key.WithHelp("<up>/<shift-tab>", "previous option"),
+		),
+		"escKey": key.NewBinding(
+			key.WithKeys("esc"),
+			key.WithHelp("<esc>", "back out to tag view"),
+		),
+		"enterKey": key.NewBinding(
+			key.WithKeys("enter"),
+			key.WithHelp("<enter>", "select button"),
+		),
+	}
+
 	channels channel.Channels
 	tags     tag.Tags
 )
@@ -515,6 +534,57 @@ func newChannelModifySubmitKeyMap() *channelModifySubmitKeyMap {
 	}
 }
 
+type tagModifyInputKeyMap struct {
+	NextKey key.Binding
+	PrevKey key.Binding
+	EscKey  key.Binding
+}
+
+func (k tagModifyInputKeyMap) ShortHelp() []key.Binding {
+	return []key.Binding{k.NextKey, k.PrevKey, k.EscKey}
+}
+func (k tagModifyInputKeyMap) FullHelp() [][]key.Binding {
+	return [][]key.Binding{
+		{k.NextKey, k.PrevKey, k.EscKey},
+		{},
+	}
+}
+
+func newTagModifyInputKeyMap() *tagModifyInputKeyMap {
+	return &tagModifyInputKeyMap{
+		NextKey: tagModifyKeyList["nextKey"],
+		PrevKey: tagModifyKeyList["prevKey"],
+		EscKey:  tagModifyKeyList["escKey"],
+	}
+}
+
+type tagModifyButtonKeyMap struct {
+	NextKey  key.Binding
+	PrevKey  key.Binding
+	EnterKey key.Binding
+	EscKey   key.Binding
+}
+
+func (k tagModifyButtonKeyMap) ShortHelp() []key.Binding {
+	return []key.Binding{k.NextKey, k.PrevKey, k.EnterKey, k.EscKey}
+}
+
+func (k tagModifyButtonKeyMap) FullHelp() [][]key.Binding {
+	return [][]key.Binding{
+		{k.NextKey, k.PrevKey, k.EscKey},
+		{k.EnterKey},
+	}
+}
+
+func newTagModifyButtonKeyMap() *tagModifyButtonKeyMap {
+	return &tagModifyButtonKeyMap{
+		NextKey:  tagModifyKeyList["nextKey"],
+		PrevKey:  tagModifyKeyList["prevKey"],
+		EnterKey: tagModifyKeyList["enterKey"],
+		EscKey:   tagModifyKeyList["escKey"],
+	}
+}
+
 type listKeyMap struct {
 	cKey        key.Binding
 	dKey        key.Binding
@@ -564,6 +634,8 @@ type Model struct {
 	channelModifyNotesKeyMap     *channelModifyNotesKeyMap
 	channelModifyTagSelectKeyMap *channelModifyTagSelectKeyMap
 	channelModifySubmitKeyMap    *channelModifySubmitKeyMap
+	tagModifyInputKeyMap         *tagModifyInputKeyMap
+	tagModifyButtonKeyMap        *tagModifyButtonKeyMap
 	help                         help.Model // this doesn't get used on list pages. lists have their own built-in help
 	selectedChannel              channel.Channel
 	selectedTag                  tag.Tag
@@ -723,6 +795,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.tagEntryInputs = m.createTagEntryForm(tag)
 					m.selectedTag = tag
 					m.current = "tagEntry"
+					m.help = help.New()
+					m.tagModifyInputKeyMap = newTagModifyInputKeyMap()
+					m.tagModifyButtonKeyMap = newTagModifyButtonKeyMap()
+					m.help.ShowAll = true
 					return m, nil
 				}
 
@@ -1215,6 +1291,28 @@ func (m Model) View() string {
 		var style = tagDisplayStyle.Width(len(m.tagEntryInputs[0].Value())).Background(lipgloss.Color("#" + m.tagEntryInputs[3].Value())).Foreground(lipgloss.Color("#" + m.tagEntryInputs[2].Value()))
 
 		b.WriteString("Example display: " + style.Render(m.tagEntryInputs[0].Value()))
+		b.WriteRune('\n')
+		b.WriteRune('\n')
+		style = lipgloss.NewStyle().Background(unsavedColour)
+		b.WriteString(style.Render("this colour signifies there's unsaved changes"))
+		b.WriteRune('\n')
+		b.WriteRune('\n')
+		switch m.tagEntryFocus {
+		case 0:
+			b.WriteString(m.help.View(m.tagModifyInputKeyMap))
+		case 1:
+			b.WriteString(m.help.View(m.tagModifyInputKeyMap))
+		case 2:
+			b.WriteString(m.help.View(m.tagModifyInputKeyMap))
+		case 3:
+			b.WriteString(m.help.View(m.tagModifyButtonKeyMap))
+		case 4:
+			b.WriteString(m.help.View(m.tagModifyInputKeyMap))
+		case 5:
+			b.WriteString(m.help.View(m.tagModifyButtonKeyMap))
+		case 6:
+			b.WriteString(m.help.View(m.tagModifyButtonKeyMap))
+		}
 
 		out = b.String()
 
