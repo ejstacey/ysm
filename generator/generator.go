@@ -36,7 +36,7 @@ func (g Generator) LoadTemplateFile() {
 }
 
 func (g Generator) OutputFile() {
-	fo, err := os.Create("output/index.html")
+	fo, err := os.Create("html/index.html")
 	utils.HandleError(err, "Unable to open output file.")
 
 	// close fo on exit and check for its returned error
