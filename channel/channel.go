@@ -15,10 +15,13 @@ package channel
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"slices"
 	"time"
 
-	"gogs.joyrex.net/ejstacey/ysm/utils"
+	"gitea.joyrex.net/ejstacey/ysm/utils"
+	"golang.org/x/oauth2"
+	"google.golang.org/api/googleapi"
 )
 
 type Channel struct {
@@ -39,7 +42,7 @@ func (c Channel) Tags() []int64            { return c.tags }
 func (c *Channel) SetDescription(x string) { c.description = x }
 
 func LoadChannelsYoutube() []Channel {
-	var service = utils.ConnectYoutube()
+	var service = utils.ConnectYoutube(false)
 
 	// Set the parameters for the request
 	var part []string
@@ -52,11 +55,36 @@ func LoadChannelsYoutube() []Channel {
 	// Make the API call
 	for {
 		response, err := call.Do()
-		utils.HandleError(err, "Error retrieving descriptions")
+		if err != nil {
+			urlErr, typeErr := err.(*url.Error)
+			if typeErr == true {
+				retrieveErr := urlErr.Err.(*oauth2.RetrieveError)
+				if retrieveErr.ErrorCode == "invalid_grant" {
+					service = utils.ConnectYoutube(true)
+					call = service.Subscriptions.List(part)
+					call.Mine(true)
+					continue
+				} else {
+					utils.HandleError(err, "Error retrieving channels")
+				}
+			} else {
+				googleErr, typeErr := err.(*googleapi.Error)
+				if typeErr == true {
+					if googleErr.Code == 401 {
+						service = utils.ConnectYoutube(true)
+						call = service.Subscriptions.List(part)
+						call.Mine(true)
+						continue
+					} else {
+						utils.HandleError(err, "Error retrieving channels")
+					}
+				}
+			}
+		}
 
 		for _, subInfo := range response.Items {
 			var channel Channel
-			channel.id = subInfo.Id
+			channel.id = subInfo.Snippet.ResourceId.ChannelId
 			channel.name = subInfo.Snippet.Title
 			channel.description = subInfo.Snippet.Description
 
@@ -145,8 +173,16 @@ func (c *Channel) SetNotes(x string) error {
 }
 
 type Channels struct {
-	ById   map[string]Channel
-	ByName map[string]Channel
+	byId   map[string]Channel
+	byName map[string]Channel
+}
+
+func (c Channels) ById() map[string]Channel {
+	return c.byId
+}
+
+func (c Channels) ByName() map[string]Channel {
+	return c.byName
 }
 
 func (c *Channels) LoadEntriesFromDb() {
@@ -195,8 +231,8 @@ func (c *Channels) LoadEntriesFromDb() {
 		channelsByName[channel.name] = channel
 	}
 	utils.HandleError(err, "Loading existing channels from db")
-	c.ById = channelsById
-	c.ByName = channelsByName
+	c.byId = channelsById
+	c.byName = channelsByName
 }
 
 func (c *Channels) CompareAndUpdateChannelsDb(newChannels []Channel) {
@@ -204,7 +240,7 @@ func (c *Channels) CompareAndUpdateChannelsDb(newChannels []Channel) {
 		var found = false
 		var oldEntry Channel
 
-		for _, dbEntry := range c.ById {
+		for _, dbEntry := range c.byId {
 			if newEntry.id == dbEntry.id {
 				found = true
 				oldEntry = dbEntry
@@ -227,6 +263,8 @@ func (c *Channels) CompareAndUpdateChannelsDb(newChannels []Channel) {
 			`
 			_, err := utils.DbConn.Exec(sqlText, newEntry.id, newEntry.name, newEntry.description)
 			utils.HandleError(err, fmt.Sprintf("Unable to insert new entry to db (%s, %s, %s)", newEntry.id, newEntry.name, newEntry.description))
+			c.byId[newEntry.id] = newEntry
+			c.byName[newEntry.name] = newEntry
 		} else {
 			if (oldEntry.name != newEntry.name) || (oldEntry.description != newEntry.description) {
 				fmt.Printf("found, updating db: %s\n", newEntry.name)
@@ -241,11 +279,13 @@ func (c *Channels) CompareAndUpdateChannelsDb(newChannels []Channel) {
 				`
 				_, err := utils.DbConn.Exec(sqlText, newEntry.name, newEntry.description, newEntry.id)
 				utils.HandleError(err, "Unable to update entry on db")
+				c.byId[newEntry.id] = newEntry
+				c.byName[newEntry.name] = newEntry
 			}
 		}
 	}
 
-	for _, dbEntry := range c.ById {
+	for _, dbEntry := range c.byId {
 		var found = false
 
 		for _, newEntry := range newChannels {
@@ -264,6 +304,8 @@ func (c *Channels) CompareAndUpdateChannelsDb(newChannels []Channel) {
 			`
 			_, err := utils.DbConn.Exec(sqlText, dbEntry.id)
 			utils.HandleError(err, "Unable to delete entry on db")
+			delete(c.byId, dbEntry.id)
+			delete(c.byName, dbEntry.name)
 		}
 	}
 }

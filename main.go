@@ -17,13 +17,13 @@ import (
 	"fmt"
 	"os"
 
+	"gitea.joyrex.net/ejstacey/ysm/channel"
+	"gitea.joyrex.net/ejstacey/ysm/tag"
+	"gitea.joyrex.net/ejstacey/ysm/tui"
+	"gitea.joyrex.net/ejstacey/ysm/utils"
 	"github.com/adhocore/jsonc"
 	_ "github.com/ncruces/go-sqlite3/driver"
 	_ "github.com/ncruces/go-sqlite3/embed"
-	"gogs.joyrex.net/ejstacey/ysm/channel"
-	"gogs.joyrex.net/ejstacey/ysm/tag"
-	"gogs.joyrex.net/ejstacey/ysm/tui"
-	"gogs.joyrex.net/ejstacey/ysm/utils"
 )
 
 type Settings struct {
@@ -58,8 +58,8 @@ func main() {
 	fmt.Printf("Loading existing DB channel entries.\n")
 	channels.LoadEntriesFromDb()
 
-	if settings.Refresh || len(channels.ById) == 0 {
-		fmt.Printf("No existing DB entries found or Refresh was set to True in settings.json. Loading a fresh list from YouTube. Check your browser.\n\n")
+	if settings.Refresh || len(channels.ById()) == 0 {
+		fmt.Printf("No existing DB entries found or Refresh was set to True in settings.json. Loading a fresh list from YouTube.\n\n")
 		var newChannels = channel.LoadChannelsYoutube()
 		channels.CompareAndUpdateChannelsDb(newChannels)
 		channels.LoadEntriesFromDb()
@@ -67,6 +67,19 @@ func main() {
 
 	fmt.Printf("Loading existing DB tag entries.\n")
 	tags.LoadEntriesFromDb()
+
+	genChannels := make([]channel.Channel, 0, len(channels.ByName()))
+	genTags := make([]tag.Tag, 0, len(tags.ByName()))
+
+	for _, chanInfo := range channels.ByName() {
+		genChannels = append(genChannels, chanInfo)
+	}
+
+	for _, tagInfo := range tags.ByName() {
+		genTags = append(genTags, tagInfo)
+	}
+
+	// dump.Print(genTags)
 
 	tui.StartTea(channels, tags)
 }

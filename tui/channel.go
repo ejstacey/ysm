@@ -20,11 +20,11 @@ import (
 	"sort"
 	"strings"
 
+	"gitea.joyrex.net/ejstacey/ysm/channel"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"gogs.joyrex.net/ejstacey/ysm/channel"
 )
 
 type channelListItemDelegate struct{}
@@ -44,7 +44,7 @@ func (d channelListItemDelegate) Render(w io.Writer, m list.Model, index int, li
 
 	var b strings.Builder
 	for _, tagId := range item.Tags() {
-		tmpTag := tags.ById[tagId]
+		tmpTag := tags.ById()[tagId]
 
 		var style = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#" + tmpTag.FgColour())).
@@ -79,14 +79,14 @@ func (d channelListItemDelegate) Render(w io.Writer, m list.Model, index int, li
 func (m Model) generateChannelItems() []list.Item {
 	var items []list.Item
 
-	keys := make([]string, 0, len(m.channels.ByName))
-	for k := range m.channels.ByName {
+	keys := make([]string, 0, len(m.channels.ByName()))
+	for k := range m.channels.ByName() {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
 
 	for _, key := range keys {
-		var channel = m.channels.ByName[key]
+		var channel = m.channels.ByName()[key]
 		items = append(items, channel)
 	}
 

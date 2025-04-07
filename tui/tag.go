@@ -23,12 +23,12 @@ import (
 	"sort"
 	"strings"
 
+	"gitea.joyrex.net/ejstacey/ysm/tag"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/devkvlt/hexer"
-	"gogs.joyrex.net/ejstacey/ysm/tag"
 )
 
 type tagListItemDelegate struct{}
@@ -46,7 +46,7 @@ func (d tagListItemDelegate) Render(w io.Writer, m list.Model, index int, listIt
 
 	var b strings.Builder
 	for i, channelId := range item.Channels() {
-		tmpChannel := channels.ById[channelId]
+		tmpChannel := channels.ById()[channelId]
 
 		var colour string
 		var row = i + 1
@@ -122,14 +122,14 @@ func HexValidator(s string) error {
 func (m Model) generateTagItems() []list.Item {
 	var items []list.Item
 
-	keys := make([]string, 0, len(m.tags.ByName))
-	for k := range m.tags.ByName {
+	keys := make([]string, 0, len(m.tags.ByName()))
+	for k := range m.tags.ByName() {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
 
 	for _, key := range keys {
-		var tag = m.tags.ByName[key]
+		var tag = m.tags.ByName()[key]
 		items = append(items, tag)
 	}
 

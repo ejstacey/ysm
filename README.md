@@ -7,6 +7,10 @@ Joyrex YSM is a TUI-based application (using [Bubble Tea](https://github.com/cha
 
 This was created as a way for me to learn/improve writing stuff in Go, but quickly turned into me learning how to use Bubble Tea, Lip Gloss and [The Elm Architecture](https://guide.elm-lang.org/architecture/). This is all to say that while the code is functional, there's very likely cleaner ways to write it. It's a great learning experience and I'm proud of it, though.
 
+### Downloading
+
+Official releases are on the [releases page](https://gitea.joyrex.net/ejstacey/ysm/releases).
+
 ### Compiling
 
 You can build this yourself by doing the following:

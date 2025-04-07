@@ -14,7 +14,6 @@ package utils
 
 import (
 	"context"
-	"encoding/gob"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -34,7 +33,7 @@ import (
 	"google.golang.org/api/youtube/v3"
 )
 
-func ConnectYoutube() *youtube.Service {
+func ConnectYoutube(badFile bool) *youtube.Service {
 	ctx := context.Background()
 
 	scope := []string{youtube.YoutubeReadonlyScope}
@@ -46,7 +45,7 @@ func ConnectYoutube() *youtube.Service {
 		Scopes:       scope,
 	}
 
-	var client = getClient(ctx, config)
+	var client = getClient(ctx, config, badFile)
 
 	service, err := youtube.NewService(ctx, option.WithHTTPClient(client))
 	HandleError(err, "Error creating YouTube client")
@@ -56,12 +55,19 @@ func ConnectYoutube() *youtube.Service {
 
 // getClient uses a Context and Config to retrieve a Token
 // then generate a Client. It returns the generated Client.
-func getClient(ctx context.Context, config *oauth2.Config) *http.Client {
+func getClient(ctx context.Context, config *oauth2.Config, badFile bool) *http.Client {
 	cacheFile, err := tokenCacheFile()
-	HandleError(err, "Error loading token cache file")
+	HandleError(err, "Error setting up token cache file")
+	log.Printf("Youtube token cache file location: %s\n", cacheFile)
 
-	tok, err := tokenFromFile(cacheFile)
-	if err != nil {
+	var tok *oauth2.Token
+	err = nil
+	if !badFile {
+		tok, err = tokenFromFile(cacheFile)
+	} else {
+		fmt.Print("Cached authentication credential file seems invalid. Re-authing.\n")
+	}
+	if err != nil || badFile {
 		tok = tokenFromWeb(ctx, config)
 		saveToken(cacheFile, tok)
 	}
@@ -98,7 +104,7 @@ func tokenFromWeb(ctx context.Context, config *oauth2.Config) *oauth2.Token {
 	go openURL(authURL)
 	log.Printf("Check your browser. It should have opened the following page (use this link if it hasn't): %s", authURL)
 	code := <-ch
-	log.Printf("Got code: %s", code)
+	// log.Printf("Got code: %s", code)
 
 	token, err := config.Exchange(ctx, code)
 	if err != nil {
@@ -127,9 +133,10 @@ func tokenFromFile(file string) (*oauth2.Token, error) {
 	if err != nil {
 		return nil, err
 	}
-	t := new(oauth2.Token)
-	err = gob.NewDecoder(f).Decode(t)
-	return t, err
+	defer f.Close()
+	tok := &oauth2.Token{}
+	err = json.NewDecoder(f).Decode(tok)
+	return tok, err
 }
 
 // saveToken uses a file path to create a file and store the

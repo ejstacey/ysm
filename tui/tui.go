@@ -21,6 +21,10 @@ import (
 	"slices"
 	"strings"
 
+	"gitea.joyrex.net/ejstacey/ysm/channel"
+	"gitea.joyrex.net/ejstacey/ysm/generator"
+	"gitea.joyrex.net/ejstacey/ysm/tag"
+	"gitea.joyrex.net/ejstacey/ysm/utils"
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
@@ -29,9 +33,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/x/term"
 	"github.com/devkvlt/hexer"
-	"gogs.joyrex.net/ejstacey/ysm/channel"
-	"gogs.joyrex.net/ejstacey/ysm/tag"
-	"gogs.joyrex.net/ejstacey/ysm/utils"
 )
 
 var (
@@ -389,6 +390,10 @@ var (
 			key.WithKeys("esc"),
 			key.WithHelp("<esc>", "back out"),
 		),
+		"gKey": key.NewBinding(
+			key.WithKeys("g"),
+			key.WithHelp("g", "generate html output of channels and tags"),
+		),
 	}
 
 	channelModifyKeyList = map[string]key.Binding{
@@ -594,6 +599,7 @@ type listKeyMap struct {
 	hKey        key.Binding
 	qKey        key.Binding
 	nKey        key.Binding
+	gKey        key.Binding
 	tabKey      key.Binding
 	shiftTabKey key.Binding
 	enterKey    key.Binding
@@ -614,6 +620,7 @@ func newListKeyMap() *listKeyMap {
 		nKey:        listKeyList["nKey"],
 		dKey:        listKeyList["dKey"],
 		mKey:        listKeyList["mKey"],
+		gKey:        listKeyList["gKey"],
 		tabKey:      listKeyList["tabKey"],
 		shiftTabKey: listKeyList["shiftTabKey"],
 		enterKey:    listKeyList["enterKey"],
@@ -680,6 +687,29 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case tea.KeyMsg:
 			switch {
+			case key.Matches(msg, m.listKeys.gKey):
+				if m.current == "channel" || m.current == "tag" {
+					genChannels := make([]channel.Channel, 0, len(m.channels.ByName()))
+					genTags := make([]tag.Tag, 0, len(m.tags.ByName()))
+
+					for _, chanInfo := range m.channels.ByName() {
+						genChannels = append(genChannels, chanInfo)
+					}
+
+					for _, tagInfo := range m.tags.ByName() {
+						genTags = append(genTags, tagInfo)
+					}
+
+					gen := generator.Generator{
+						Channels: genChannels,
+						Tags:     genTags,
+						Title:    "My Youtube Subscription List",
+					}
+					gen.LoadTemplateFile()
+					gen.OutputFile()
+				}
+				return m, nil
+
 			case key.Matches(msg, m.listKeys.cKey):
 				m.current = "channel"
 				width := m.list.Width()
@@ -693,6 +723,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						listKeys.tKey,
 						listKeys.pKey,
 						listKeys.enterKey,
+						listKeys.gKey,
 					}
 				}
 				m.list.AdditionalFullHelpKeys = func() []key.Binding {
@@ -700,6 +731,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						listKeys.tKey,
 						listKeys.pKey,
 						listKeys.enterKey,
+						listKeys.gKey,
 					}
 				}
 
@@ -729,6 +761,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						listKeys.mKey,
 						listKeys.dKey,
 						listKeys.enterKey,
+						listKeys.gKey,
 					}
 				}
 				m.list.AdditionalFullHelpKeys = func() []key.Binding {
@@ -739,6 +772,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						listKeys.mKey,
 						listKeys.dKey,
 						listKeys.enterKey,
+						listKeys.gKey,
 					}
 				}
 
@@ -765,7 +799,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				switch m.current {
 				case "channel", "tag":
 					m.list.SetShowPagination(!m.list.ShowPagination())
-					return m, nil
 				}
 
 			case key.Matches(msg, m.listKeys.hKey):
@@ -803,14 +836,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 
 			case key.Matches(msg, m.listKeys.dKey):
-				switch m.current {
-				case "tag":
-					tag := m.list.SelectedItem().(tag.Tag)
-					m.tagEntryOperation = tagEntryDeleteOperationId
-					m.tagDeleteInputs = m.deleteTagEntryForm(tag)
-					m.current = "confirmDelete"
+				if m.current != "tag" {
 					return m, nil
 				}
+
+				tag := m.list.SelectedItem().(tag.Tag)
+				m.tagEntryOperation = tagEntryDeleteOperationId
+				m.tagDeleteInputs = m.deleteTagEntryForm(tag)
+				m.current = "confirmDelete"
+				return m, nil
 
 			case key.Matches(msg, m.listKeys.qKey):
 				return m, tea.Quit
@@ -989,10 +1023,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					utils.HandleError(err, "updating channel notes")
 					m.channelModifyFocus = 0
 					// process selected tag list here
-					sortedTags := slices.Sorted(maps.Keys(m.tags.ByName))
+					sortedTags := slices.Sorted(maps.Keys(m.tags.ByName()))
 					var submitIds []int64
 					for _, orderId := range m.selectedTagIds {
-						tag := m.tags.ByName[sortedTags[orderId]]
+						tag := m.tags.ByName()[sortedTags[orderId]]
 						var found bool = false
 						for _, currTagId := range m.selectedChannel.Tags() {
 							if int64(currTagId) == tag.Id() {
@@ -1008,10 +1042,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 					// include existing stuff so we don't lose it.
 					for _, currTagId := range m.selectedChannel.Tags() {
-						tag := m.tags.ById[currTagId]
+						tag := m.tags.ById()[currTagId]
 						var found bool = false
 						for _, orderId := range m.selectedTagIds {
-							testTag := m.tags.ByName[sortedTags[orderId]]
+							testTag := m.tags.ByName()[sortedTags[orderId]]
 
 							if testTag.Id() == tag.Id() {
 								found = true
@@ -1076,7 +1110,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case key.Matches(msg, channelModifyKeyList["leftKey"], channelModifyKeyList["rightKey"]):
 				s := msg.String()
 
-				var totalLength = len(m.tags.ById)
+				var totalLength = len(m.tags.ById())
 
 				if m.channelModifyFocus == 1 {
 					if s == "left" {
@@ -1329,7 +1363,7 @@ func (m Model) View() string {
 		b.WriteString(m.channelModifyInputs[0].View())
 		b.WriteString("\n")
 
-		sortedTags := slices.Sorted(maps.Keys(m.tags.ByName))
+		sortedTags := slices.Sorted(maps.Keys(m.tags.ByName()))
 
 		var cellSize int = 1
 		for _, tagName := range sortedTags {
@@ -1344,7 +1378,7 @@ func (m Model) View() string {
 		var output string
 		var curCol = 0
 		for i, tagName := range sortedTags {
-			tag := m.tags.ByName[tagName]
+			tag := m.tags.ByName()[tagName]
 			var style = tagDisplayStyle.Width(len(tagName)).Background(lipgloss.Color("#" + tag.BgColour())).Foreground(lipgloss.Color("#" + tag.FgColour())).Margin(1)
 
 			var found = false
@@ -1505,6 +1539,7 @@ func StartTea(channels channel.Channels, tags tag.Tags) {
 			listKeys.tKey,
 			listKeys.pKey,
 			listKeys.enterKey,
+			listKeys.gKey,
 		}
 	}
 	m.list.AdditionalFullHelpKeys = func() []key.Binding {
@@ -1512,6 +1547,7 @@ func StartTea(channels channel.Channels, tags tag.Tags) {
 			listKeys.tKey,
 			listKeys.pKey,
 			listKeys.enterKey,
+			listKeys.gKey,
 		}
 	}
 

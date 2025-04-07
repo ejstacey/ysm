@@ -20,7 +20,7 @@ import (
 	"slices"
 	"time"
 
-	"gogs.joyrex.net/ejstacey/ysm/utils"
+	"gitea.joyrex.net/ejstacey/ysm/utils"
 )
 
 type Tag struct {
@@ -292,8 +292,16 @@ func (t Tag) validateName(num int, name string) error {
 }
 
 type Tags struct {
-	ById   map[int64]Tag
-	ByName map[string]Tag
+	byId   map[int64]Tag
+	byName map[string]Tag
+}
+
+func (t Tags) ById() map[int64]Tag {
+	return t.byId
+}
+
+func (t Tags) ByName() map[string]Tag {
+	return t.byName
 }
 
 func (t *Tags) LoadEntriesFromDb() {
@@ -365,6 +373,6 @@ func (t *Tags) LoadEntriesFromDb() {
 	}
 	utils.HandleError(err, "Loading existing tag from db")
 
-	t.ById = tagsById
-	t.ByName = tagsByName
+	t.byId = tagsById
+	t.byName = tagsByName
 }
