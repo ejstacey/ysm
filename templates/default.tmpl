@@ -9,6 +9,20 @@
     <script src="jquery-3.7.1.min.js" type='text/javascript'></script>
     <script src="datatables.min.js" type='text/javascript'></script>
     <script src="bootstrap.min.js" type='text/javascript'></script>
+    <style>
+        .tagButton {
+            margin: 1px;
+        }
+    {{range .Tags}}
+        .tagButton{{.Id}} {
+            background-color: #{{.BgColour}};
+        }
+
+        .tagButton{{.Id}} a {
+            color: #{{.FgColour}};
+        }
+    {{end}}
+    </style>
 </head>
 <body>
     <div class="container" id="body">
@@ -21,7 +35,7 @@
             <div class="row">
                 {{range .Tags}}
                 <div class="col" id="buttonList-button{{.Id}}">
-                    <a class="tagButton tagButton{{.Id}}" id="buttonListButton{{.Id}}" href="#button{{.Id}}">{{.Name}}</a>
+                    <div class="tagButton tagButton{{.Id}}"><a id="buttonListButton{{.Id}}" href="#button{{.Id}}">{{.Name -}}</a></div>
                 </div>
                 {{end}}
             </div>
@@ -40,10 +54,10 @@
             <tbody>
                 {{range .Channels}}
                 <tr>
-                    <td><a href="https://youtube.com/channel/{{.Id}}" target='_blank'>{{.Name}}</a></td>
+                    <td><a href="https://youtube.com/channel/{{.Id}}" target='_blank'>{{.Name -}}</a></td>
                     <td>{{.Description}}</td>
                     <td>{{.Notes}}</td>
-                    <td>{{range .Tags}}<a class="tagButton tagButton{{.}}" href="#button{{.}}">{{.}}</a>{{end}}</td>
+                    <td>{{range .Tags}}<div class="tagButton tagButton{{.Id}}"><a id="buttonListButton{{.Id}}" href="#button{{.Id}}">{{.Name}}</a></div><br>{{end}}</td>
                 </tr>
                 {{end}}
             </tbody>

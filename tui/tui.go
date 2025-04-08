@@ -730,6 +730,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 							Description: chanInfo.Description(),
 							Notes:       chanInfo.Notes(),
 						}
+						var tmpTags = make(map[string]tag.ExportTag)
 						for _, tagId := range chanInfo.Tags() {
 							tagInfo := m.tags.ById()[tagId]
 							tmpTag := tag.ExportTag{
@@ -737,11 +738,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 								Name:        tagInfo.Name(),
 								Description: tagInfo.Description(),
 							}
-							tmpChan.Tags = append(tmpChan.Tags, tmpTag)
+							tmpTags[tmpTag.Name] = tmpTag
 						}
+						sortedTags := slices.Sorted(maps.Keys(tmpTags))
+						for _, tmpTag := range sortedTags {
+							tmpChan.Tags = append(tmpChan.Tags, tmpTags[tmpTag])
+						}
+
 						genChannels = append(genChannels, tmpChan)
 					}
 
+					var tmpTags = make(map[string]tag.ExportTag)
 					for _, tagInfo := range m.tags.ByName() {
 						tmpTag := tag.ExportTag{
 							Id:          tagInfo.Id(),
@@ -750,7 +757,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 							FgColour:    tagInfo.FgColour(),
 							BgColour:    tagInfo.BgColour(),
 						}
-						genTags = append(genTags, tmpTag)
+						tmpTags[tmpTag.Name] = tmpTag
+					}
+					sortedTags := slices.Sorted(maps.Keys(tmpTags))
+					for _, tmpTag := range sortedTags {
+						genTags = append(genTags, tmpTags[tmpTag])
 					}
 
 					gen := generator.Generator{
