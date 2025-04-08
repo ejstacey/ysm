@@ -159,14 +159,14 @@ func (m Model) createTagEntryForm(tag tag.Tag) []textinput.Model {
 			t.CharLimit = 4000
 			t.SetValue(tag.Description())
 		case 2:
-			t.Placeholder = "foreground colour (hex)"
+			t.Placeholder = "ffffff"
 			t.CharLimit = 6
 			t.Width = 6
 			t.Prompt = " #"
 			t.Validate = HexValidator
 			t.SetValue(tag.FgColour())
 		case 3:
-			t.Placeholder = "background color (hex)"
+			t.Placeholder = "000000"
 			t.CharLimit = 6
 			t.Width = 6
 			t.Prompt = " #"
