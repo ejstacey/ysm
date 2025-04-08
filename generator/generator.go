@@ -22,8 +22,8 @@ import (
 )
 
 type Generator struct {
-	Channels []channel.Channel
-	Tags     []tag.Tag
+	Channels []channel.ExportChannel
+	Tags     []tag.ExportTag
 	Title    string
 }
 
@@ -32,6 +32,7 @@ var t *template.Template
 func (g Generator) LoadTemplateFile() {
 	input, err := os.ReadFile("templates/default.tmpl")
 	utils.HandleError(err, "Unable to open template.")
+
 	t = template.Must(template.New("default").Parse(string(input)))
 }
 

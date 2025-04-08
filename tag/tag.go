@@ -23,6 +23,14 @@ import (
 	"gitea.joyrex.net/ejstacey/ysm/utils"
 )
 
+type ExportTag struct {
+	Id          int64
+	Name        string
+	Description string
+	BgColour    string
+	FgColour    string
+}
+
 type Tag struct {
 	id          int64
 	name        string
