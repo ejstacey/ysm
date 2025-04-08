@@ -446,6 +446,42 @@ var (
 		),
 	}
 
+	colourPickerKeyList = map[string]key.Binding{
+		"downKey": key.NewBinding(
+			key.WithKeys("down"),
+		),
+		"upKey": key.NewBinding(
+			key.WithKeys("up"),
+		),
+		"leftKey": key.NewBinding(
+			key.WithKeys("left"),
+		),
+		"rightKey": key.NewBinding(
+			key.WithKeys("right"),
+		),
+		"escKey": key.NewBinding(
+			key.WithKeys("esc"),
+		),
+		"enterKey": key.NewBinding(
+			key.WithKeys("enter"),
+		),
+	}
+
+	confirmDeleteKeyList = map[string]key.Binding{
+		"nextKey": key.NewBinding(
+			key.WithKeys("down", "tab", "right"),
+		),
+		"prevKey": key.NewBinding(
+			key.WithKeys("up", "shift+tab", "left"),
+		),
+		"escKey": key.NewBinding(
+			key.WithKeys("esc"),
+		),
+		"enterKey": key.NewBinding(
+			key.WithKeys("enter"),
+		),
+	}
+
 	channels channel.Channels
 	tags     tag.Tags
 )
@@ -653,6 +689,7 @@ type Model struct {
 	channelModifyInputs  []textinput.Model
 	colourPickerX        int
 	colourPickerY        int
+	colourPickerTitle    string
 	selectedBackColour   string
 }
 
@@ -910,6 +947,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					} else if m.tagEntryFocus == 3 || m.tagEntryFocus == 5 {
 						m.current = "colourPicker"
 						if m.tagEntryFocus == 3 {
+							m.colourPickerTitle = "Setting foreground colour"
 							m.tagEntryInputs[2].SetValue(strings.ToUpper(m.tagEntryInputs[2].Value()))
 							m.selectedBackColour = "#" + m.tagEntryInputs[2].Value()
 							var found bool
@@ -930,6 +968,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 								m.selectedBackColour = colours[0][0]
 							}
 						} else {
+							m.colourPickerTitle = "Setting background colour"
 							m.tagEntryInputs[3].SetValue(strings.ToUpper(m.tagEntryInputs[3].Value()))
 							m.selectedBackColour = "#" + m.tagEntryInputs[3].Value()
 							var found bool
@@ -1018,7 +1057,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case key.Matches(msg, channelModifyKeyList["escKey"]):
 				m.current = "channel"
 				return m, nil
-
 			case key.Matches(msg, channelModifyKeyList["enterKey"]):
 				var totalLength = len(m.channelModifyInputs) + 1
 
@@ -1075,7 +1113,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				} else {
 					cmd = m.updateChannelModifyInput(msg)
 				}
-
 			case key.Matches(msg, channelModifyKeyList["nextKey"], channelModifyKeyList["prevKey"]):
 				s := msg.String()
 
@@ -1172,11 +1209,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case tea.KeyMsg:
 			switch {
-			case key.Matches(msg, m.listKeys.escKey, m.listKeys.qKey):
+			case key.Matches(msg, confirmDeleteKeyList["escKey"]):
 				m.current = "tag"
 				return m, nil
 
-			case key.Matches(msg, m.listKeys.tabKey, m.listKeys.shiftTabKey, m.listKeys.enterKey, m.listKeys.upKey, m.listKeys.downKey, m.listKeys.leftKey, m.listKeys.rightKey):
+			case key.Matches(msg, confirmDeleteKeyList["nextKey"], confirmDeleteKeyList["prevKey"], confirmDeleteKeyList["enterKey"]):
 				s := msg.String()
 
 				// Did the user press enter while the submit button was focused?
@@ -1225,7 +1262,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case tea.KeyMsg:
 			switch {
-			case key.Matches(msg, m.listKeys.upKey, m.listKeys.shiftTabKey):
+			case key.Matches(msg, colourPickerKeyList["upKey"]):
 				m.colourPickerY--
 
 				if m.colourPickerY < 0 {
@@ -1234,7 +1271,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.selectedBackColour = colours[m.colourPickerX][m.colourPickerY]
 				return m, nil
 
-			case key.Matches(msg, m.listKeys.downKey, m.listKeys.tabKey):
+			case key.Matches(msg, colourPickerKeyList["downKey"]):
 				m.colourPickerY++
 
 				if m.colourPickerY > len(colours[0])-1 {
@@ -1243,7 +1280,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.selectedBackColour = colours[m.colourPickerX][m.colourPickerY]
 				return m, nil
 
-			case key.Matches(msg, m.listKeys.leftKey):
+			case key.Matches(msg, colourPickerKeyList["leftKey"]):
 				m.colourPickerX--
 
 				if m.colourPickerX < 0 {
@@ -1252,7 +1289,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.selectedBackColour = colours[m.colourPickerX][m.colourPickerY]
 				return m, nil
 
-			case key.Matches(msg, m.listKeys.rightKey):
+			case key.Matches(msg, colourPickerKeyList["rightKey"]):
 				m.colourPickerX++
 
 				if m.colourPickerX > len(colours)-1 {
@@ -1261,7 +1298,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.selectedBackColour = colours[m.colourPickerX][m.colourPickerY]
 				return m, nil
 
-			case key.Matches(msg, m.listKeys.enterKey):
+			case key.Matches(msg, colourPickerKeyList["enterKey"]):
 				m.current = "tagEntry"
 				if m.tagEntryFocus == 3 {
 					m.tagEntryInputs[2].SetValue(strings.ReplaceAll(m.selectedBackColour, "#", ""))
@@ -1273,7 +1310,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 				return m, nil
 
-			case key.Matches(msg, m.listKeys.escKey, m.listKeys.qKey):
+			case key.Matches(msg, colourPickerKeyList["escKey"]):
 				m.current = "tagEntry"
 				return m, nil
 			}
@@ -1512,6 +1549,8 @@ func (m Model) View() string {
 
 	case "colourPicker":
 		var b strings.Builder
+		b.WriteString(m.colourPickerTitle)
+		b.WriteString("\n\n")
 		for row := 0; row < 12; row++ {
 			for column := 0; column < len(colours); column++ {
 				if column == m.colourPickerX &&
