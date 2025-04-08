@@ -96,7 +96,11 @@ func (d tagListItemDelegate) Render(w io.Writer, m list.Model, index int, listIt
 		out = "<none>"
 	}
 
-	str := fmt.Sprintf("%s\n%s\n%s\n", item.Name(), item.Description(), "channels: "+out)
+	var style = lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#" + item.FgColour())).
+		Background(lipgloss.Color("#" + item.BgColour()))
+
+	str := fmt.Sprintf("%s\n%s\n%s\n", style.Render(item.Name()), item.Description(), "channels: "+out)
 
 	fn := blurredListStyle.Render
 	if index == m.Index() {
