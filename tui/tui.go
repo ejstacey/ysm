@@ -862,21 +862,23 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 
 			case key.Matches(msg, m.listKeys.enterKey, m.listKeys.mKey):
-				switch m.current {
-				case "channel":
-					channel := m.list.SelectedItem().(channel.Channel)
-					m.channelModifyHeaders = m.createChannelModifyHeader(channel)
-					m.channelModifyInputs = m.createChannelModifyForm(channel)
-					m.selectedChannel = channel
-					m.current = "channelModify"
-					return m, nil
-				case "tag":
-					tag := m.list.SelectedItem().(tag.Tag)
-					m.tagEntryOperation = tagEntryModifyOperationId
-					m.tagEntryInputs = m.createTagEntryForm(tag)
-					m.selectedTag = tag
-					m.current = "tagEntry"
-					return m, nil
+				if m.list.SelectedItem() != nil {
+					switch m.current {
+					case "channel":
+						channel := m.list.SelectedItem().(channel.Channel)
+						m.channelModifyHeaders = m.createChannelModifyHeader(channel)
+						m.channelModifyInputs = m.createChannelModifyForm(channel)
+						m.selectedChannel = channel
+						m.current = "channelModify"
+						return m, nil
+					case "tag":
+						tag := m.list.SelectedItem().(tag.Tag)
+						m.tagEntryOperation = tagEntryModifyOperationId
+						m.tagEntryInputs = m.createTagEntryForm(tag)
+						m.selectedTag = tag
+						m.current = "tagEntry"
+						return m, nil
+					}
 				}
 
 			case key.Matches(msg, m.listKeys.dKey):
