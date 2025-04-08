@@ -555,8 +555,8 @@ func (k tagModifyInputKeyMap) FullHelp() [][]key.Binding {
 	}
 }
 
-func newTagModifyInputKeyMap() *tagModifyInputKeyMap {
-	return &tagModifyInputKeyMap{
+func newTagModifyInputKeyMap() tagModifyInputKeyMap {
+	return tagModifyInputKeyMap{
 		NextKey: tagModifyKeyList["nextKey"],
 		PrevKey: tagModifyKeyList["prevKey"],
 		EscKey:  tagModifyKeyList["escKey"],
@@ -581,8 +581,8 @@ func (k tagModifyButtonKeyMap) FullHelp() [][]key.Binding {
 	}
 }
 
-func newTagModifyButtonKeyMap() *tagModifyButtonKeyMap {
-	return &tagModifyButtonKeyMap{
+func newTagModifyButtonKeyMap() tagModifyButtonKeyMap {
+	return tagModifyButtonKeyMap{
 		NextKey:  tagModifyKeyList["nextKey"],
 		PrevKey:  tagModifyKeyList["prevKey"],
 		EnterKey: tagModifyKeyList["enterKey"],
@@ -633,33 +633,27 @@ func newListKeyMap() *listKeyMap {
 }
 
 type Model struct {
-	current                      string
-	list                         list.Model
-	channels                     channel.Channels
-	tags                         tag.Tags
-	listKeys                     *listKeyMap
-	channelModifyNotesKeyMap     *channelModifyNotesKeyMap
-	channelModifyTagSelectKeyMap *channelModifyTagSelectKeyMap
-	channelModifySubmitKeyMap    *channelModifySubmitKeyMap
-	tagModifyInputKeyMap         *tagModifyInputKeyMap
-	tagModifyButtonKeyMap        *tagModifyButtonKeyMap
-	help                         help.Model // this doesn't get used on list pages. lists have their own built-in help
-	selectedChannel              channel.Channel
-	selectedTag                  tag.Tag
-	selectedChannelId            int
-	selectedTagId                int
-	selectedTagIds               []int
-	tagEntryFocus                int
-	tagEntryOperation            int
-	tagDeleteFocus               int
-	tagDeleteInputs              []string
-	tagEntryInputs               []textinput.Model
-	channelModifyFocus           int
-	channelModifyHeaders         []string
-	channelModifyInputs          []textinput.Model
-	colourPickerX                int
-	colourPickerY                int
-	selectedBackColour           string
+	current              string
+	list                 list.Model
+	channels             channel.Channels
+	tags                 tag.Tags
+	listKeys             *listKeyMap
+	selectedChannel      channel.Channel
+	selectedTag          tag.Tag
+	selectedChannelId    int
+	selectedTagId        int
+	selectedTagIds       []int
+	tagEntryFocus        int
+	tagEntryOperation    int
+	tagDeleteFocus       int
+	tagDeleteInputs      []string
+	tagEntryInputs       []textinput.Model
+	channelModifyFocus   int
+	channelModifyHeaders []string
+	channelModifyInputs  []textinput.Model
+	colourPickerX        int
+	colourPickerY        int
+	selectedBackColour   string
 }
 
 func (m Model) Init() tea.Cmd {
@@ -689,15 +683,37 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			switch {
 			case key.Matches(msg, m.listKeys.gKey):
 				if m.current == "channel" || m.current == "tag" {
-					genChannels := make([]channel.Channel, 0, len(m.channels.ByName()))
-					genTags := make([]tag.Tag, 0, len(m.tags.ByName()))
+					genChannels := make([]channel.ExportChannel, 0, len(m.channels.ByName()))
+					genTags := make([]tag.ExportTag, 0, len(m.tags.ByName()))
 
 					for _, chanInfo := range m.channels.ByName() {
-						genChannels = append(genChannels, chanInfo)
+						tmpChan := channel.ExportChannel{
+							Id:          chanInfo.Id(),
+							Name:        chanInfo.Name(),
+							Description: chanInfo.Description(),
+							Notes:       chanInfo.Notes(),
+						}
+						for _, tagId := range chanInfo.Tags() {
+							tagInfo := m.tags.ById()[tagId]
+							tmpTag := tag.ExportTag{
+								Id:          tagInfo.Id(),
+								Name:        tagInfo.Name(),
+								Description: tagInfo.Description(),
+							}
+							tmpChan.Tags = append(tmpChan.Tags, tmpTag)
+						}
+						genChannels = append(genChannels, tmpChan)
 					}
 
 					for _, tagInfo := range m.tags.ByName() {
-						genTags = append(genTags, tagInfo)
+						tmpTag := tag.ExportTag{
+							Id:          tagInfo.Id(),
+							Name:        tagInfo.Name(),
+							Description: tagInfo.Description(),
+							FgColour:    tagInfo.FgColour(),
+							BgColour:    tagInfo.BgColour(),
+						}
+						genTags = append(genTags, tmpTag)
 					}
 
 					gen := generator.Generator{
@@ -816,11 +832,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.channelModifyInputs = m.createChannelModifyForm(channel)
 					m.selectedChannel = channel
 					m.current = "channelModify"
-					m.help = help.New()
-					m.channelModifyNotesKeyMap = newChannelModifyNotesKeyMap()
-					m.channelModifyTagSelectKeyMap = newChannelModifyTagSelectKeyMap()
-					m.channelModifySubmitKeyMap = newChannelModifySubmitKeyMap()
-					m.help.ShowAll = true
 					return m, nil
 				case "tag":
 					tag := m.list.SelectedItem().(tag.Tag)
@@ -828,10 +839,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.tagEntryInputs = m.createTagEntryForm(tag)
 					m.selectedTag = tag
 					m.current = "tagEntry"
-					m.help = help.New()
-					m.tagModifyInputKeyMap = newTagModifyInputKeyMap()
-					m.tagModifyButtonKeyMap = newTagModifyButtonKeyMap()
-					m.help.ShowAll = true
 					return m, nil
 				}
 
@@ -861,11 +868,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case tea.KeyMsg:
 			switch {
-			case key.Matches(msg, m.listKeys.escKey):
+			case key.Matches(msg, tagModifyKeyList["escKey"]):
 				m.current = "tag"
 				return m, nil
 
-			case key.Matches(msg, m.listKeys.tabKey, m.listKeys.shiftTabKey, m.listKeys.enterKey, m.listKeys.upKey, m.listKeys.downKey):
+			case key.Matches(msg, tagModifyKeyList["nextKey"], tagModifyKeyList["prevKey"], tagModifyKeyList["enterKey"]):
 				s := msg.String()
 
 				// Did the user press enter while the submit button was focused?
@@ -1078,6 +1085,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if s == "up" || s == "shift+tab" {
 					m.channelModifyFocus--
 				} else {
+					m.channelModifyFocus++
+				}
+
+				// if there's no tags, don't use the second focus
+				if m.channelModifyFocus == 1 && len(m.tags.ById()) == 0 {
 					m.channelModifyFocus++
 				}
 
@@ -1331,21 +1343,29 @@ func (m Model) View() string {
 		b.WriteString(style.Render("this colour signifies there's unsaved changes"))
 		b.WriteRune('\n')
 		b.WriteRune('\n')
+		tagInputKeyMap := newTagModifyInputKeyMap()
+		tagButtonKeyMap := newTagModifyButtonKeyMap()
+		// err := os.WriteFile("debug.log", []byte(dump.Format(newTagModifyButtonKeyMap())), 0644)
+		// if err != nil {
+		// 	panic(err)
+		// }
+		help := help.New()
+		help.ShowAll = true
 		switch m.tagEntryFocus {
 		case 0:
-			b.WriteString(m.help.View(m.tagModifyInputKeyMap))
+			b.WriteString(help.View(tagInputKeyMap))
 		case 1:
-			b.WriteString(m.help.View(m.tagModifyInputKeyMap))
+			b.WriteString(help.View(tagInputKeyMap))
 		case 2:
-			b.WriteString(m.help.View(m.tagModifyInputKeyMap))
+			b.WriteString(help.View(tagInputKeyMap))
 		case 3:
-			b.WriteString(m.help.View(m.tagModifyButtonKeyMap))
+			b.WriteString(help.View(tagButtonKeyMap))
 		case 4:
-			b.WriteString(m.help.View(m.tagModifyInputKeyMap))
+			b.WriteString(help.View(tagInputKeyMap))
 		case 5:
-			b.WriteString(m.help.View(m.tagModifyButtonKeyMap))
+			b.WriteString(help.View(tagButtonKeyMap))
 		case 6:
-			b.WriteString(m.help.View(m.tagModifyButtonKeyMap))
+			b.WriteString(help.View(tagButtonKeyMap))
 		}
 
 		out = b.String()
@@ -1444,13 +1464,19 @@ func (m Model) View() string {
 		b.WriteString(style.Render("this colour signifies there's unsaved changes"))
 		b.WriteRune('\n')
 		b.WriteRune('\n')
+
+		channelModifyNotesKeyMap := newChannelModifyNotesKeyMap()
+		channelModifyTagSelectKeyMap := newChannelModifyTagSelectKeyMap()
+		channelModifySubmitKeyMap := newChannelModifySubmitKeyMap()
+		help := help.New()
+		help.ShowAll = true
 		switch m.channelModifyFocus {
 		case 0:
-			b.WriteString(m.help.View(m.channelModifyNotesKeyMap))
+			b.WriteString(help.View(channelModifyNotesKeyMap))
 		case 1:
-			b.WriteString(m.help.View(m.channelModifyTagSelectKeyMap))
+			b.WriteString(help.View(channelModifyTagSelectKeyMap))
 		case 2:
-			b.WriteString(m.help.View(m.channelModifySubmitKeyMap))
+			b.WriteString(help.View(channelModifySubmitKeyMap))
 		}
 
 		out = b.String()
