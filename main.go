@@ -67,18 +67,6 @@ func main() {
 
 	fmt.Printf("Loading existing DB tag entries.\n")
 	tags.LoadEntriesFromDb()
-
-	genChannels := make([]channel.Channel, 0, len(channels.ByName()))
-	genTags := make([]tag.Tag, 0, len(tags.ByName()))
-
-	for _, chanInfo := range channels.ByName() {
-		genChannels = append(genChannels, chanInfo)
-	}
-
-	for _, tagInfo := range tags.ByName() {
-		genTags = append(genTags, tagInfo)
-	}
-
 	// dump.Print(genTags)
 
 	tui.StartTea(channels, tags)
