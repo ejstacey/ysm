@@ -5,9 +5,9 @@
 
 ![Janky YSM Logo](https://gitea.joyrex.net/ejstacey/ysm/raw/branch/main/assets/120px-logo.png "YSM")
 
-Joyrex YSM is a TUI-based application (using [Bubble Tea](https://github.com/charmbracelet/bubbletea) and [Lip Gloss](https://github.com/charmbracelet/lipgloss) for UI elements) used for keeping a local index of your Youtube Subscriptions and letting you attach notes and tags to them. The idea is this is a backend application that prepares the database so a frontend application can handle displaying the subscription list for a specific tag/whatever, however there is a basic html page generator included.
+Joyrex YSM is a TUI-based application (using [Bubble Tea](https://github.com/charmbracelet/bubbletea) and [Lip Gloss](https://github.com/charmbracelet/lipgloss) for UI elements) used for keeping a local index of your Youtube Subscriptions and letting you attach notes and tags to them. The idea is this is a backend application that prepares the database so a frontend application can handle displaying the subscription list for a specific tag/whatever, however there is a basic html page generator included as well.
 
-This was created as a way for me to learn/improve writing stuff in Go, but quickly turned into me learning how to use Bubble Tea, Lip Gloss and [The Elm Architecture](https://guide.elm-lang.org/architecture/). This is all to say that while the code is functional, there's very likely cleaner ways to write it. It's a great learning experience and I'm proud of it, though.\
+This was created as a way for me to learn/improve writing stuff in Go, but quickly turned into me learning how to use Bubble Tea, Lip Gloss and [The Elm Architecture](https://guide.elm-lang.org/architecture/). This is all to say that while the code is functional, there's very likely cleaner ways to write it. It's a great learning experience and I'm proud of it, though.
 
 You can see what the built-in generator output looks like [here](https://joyrex.net/ysm/).
 
@@ -49,9 +49,9 @@ Help is at the bottom of most screens. If you hit a bug, email me at [ejstacey@j
 
 ## FAQ
 
-1. This is too much work, why didn't you do a webpage to do all this so I can edit/display in my browser?
+1. This is too much work, why didn't you do a webpage to do all this so I can edit/display in my browser?  
 
-I really, really, really don't want your data (and you shouldn't want to hand it over to me). I think there's value in people learning to create/edit webpages, and doing something basic like having the majority filled out for you so you can learn by doing tweaks to something that is there for the majority.
+I really, really, really don't want your data (and you shouldn't want to hand it over to me). I think there's value in people learning to create/edit webpages, and doing something basic like having the majority filled out for you so you can learn by doing tweaks to something that is there for the most part. There's movements out there to embrace/return to what is called the [small web](https://benhoyt.com/writings/the-small-web-is-beautiful/). I don't follow this perfectly (using javascript), but self-hosting is a bit part of it, and this does that.
 
 2. So where can I host this?
 
