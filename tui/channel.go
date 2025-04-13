@@ -21,11 +21,126 @@ import (
 	"strings"
 
 	"gitea.joyrex.net/ejstacey/ysm/channel"
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
+
+var channels channel.Channels
+
+var channelModifyKeyList = map[string]key.Binding{
+	"nextKey": key.NewBinding(
+		key.WithKeys("down", "tab"),
+		key.WithHelp("<down>/<tab>", "next option"),
+	),
+	"prevKey": key.NewBinding(
+		key.WithKeys("up", "shift+tab"),
+		key.WithHelp("<up>/<shift-tab>", "previous option"),
+	),
+	"escKey": key.NewBinding(
+		key.WithKeys("esc"),
+		key.WithHelp("<esc>", "back out to channel view"),
+	),
+	"enterKey": key.NewBinding(
+		key.WithKeys("enter"),
+		key.WithHelp("<enter>", "save changes"),
+	),
+	"leftKey": key.NewBinding(
+		key.WithKeys("left"),
+		key.WithHelp("<left>", "move tag selector to left"),
+	),
+	"rightKey": key.NewBinding(
+		key.WithKeys("right"),
+		key.WithHelp("<right>", "move tag selector to right"),
+	),
+	"spaceKey": key.NewBinding(
+		key.WithKeys(" "),
+		key.WithHelp("<space>", "select or unselect tag"),
+	),
+}
+
+type channelModifyNotesKeyMap struct {
+	NextKey key.Binding
+	PrevKey key.Binding
+	EscKey  key.Binding
+}
+
+func (k channelModifyNotesKeyMap) ShortHelp() []key.Binding {
+	return []key.Binding{k.NextKey, k.PrevKey, k.EscKey}
+}
+func (k channelModifyNotesKeyMap) FullHelp() [][]key.Binding {
+	return [][]key.Binding{
+		{k.NextKey, k.PrevKey, k.EscKey},
+		{},
+	}
+}
+
+func newChannelModifyNotesKeyMap() *channelModifyNotesKeyMap {
+	return &channelModifyNotesKeyMap{
+		NextKey: channelModifyKeyList["nextKey"],
+		PrevKey: channelModifyKeyList["prevKey"],
+		EscKey:  channelModifyKeyList["escKey"],
+	}
+}
+
+type channelModifyTagSelectKeyMap struct {
+	NextKey  key.Binding
+	PrevKey  key.Binding
+	SpaceKey key.Binding
+	LeftKey  key.Binding
+	RightKey key.Binding
+	EscKey   key.Binding
+}
+
+func (k channelModifyTagSelectKeyMap) ShortHelp() []key.Binding {
+	return []key.Binding{k.NextKey, k.PrevKey, k.LeftKey, k.RightKey, k.SpaceKey, k.EscKey}
+}
+func (k channelModifyTagSelectKeyMap) FullHelp() [][]key.Binding {
+	return [][]key.Binding{
+		{k.NextKey, k.PrevKey, k.EscKey},
+		{k.LeftKey, k.RightKey, k.SpaceKey},
+	}
+}
+
+func newChannelModifyTagSelectKeyMap() *channelModifyTagSelectKeyMap {
+	return &channelModifyTagSelectKeyMap{
+		NextKey:  channelModifyKeyList["nextKey"],
+		PrevKey:  channelModifyKeyList["prevKey"],
+		SpaceKey: channelModifyKeyList["spaceKey"],
+		LeftKey:  channelModifyKeyList["leftKey"],
+		RightKey: channelModifyKeyList["rightKey"],
+		EscKey:   channelModifyKeyList["escKey"],
+	}
+}
+
+type channelModifySubmitKeyMap struct {
+	NextKey  key.Binding
+	PrevKey  key.Binding
+	EnterKey key.Binding
+	EscKey   key.Binding
+}
+
+func (k channelModifySubmitKeyMap) ShortHelp() []key.Binding {
+	return []key.Binding{k.NextKey, k.PrevKey, k.EnterKey, k.EscKey}
+}
+
+func (k channelModifySubmitKeyMap) FullHelp() [][]key.Binding {
+	return [][]key.Binding{
+		{k.NextKey, k.PrevKey, k.EscKey},
+		{k.EnterKey},
+	}
+}
+
+func newChannelModifySubmitKeyMap() *channelModifySubmitKeyMap {
+	return &channelModifySubmitKeyMap{
+		NextKey:  channelModifyKeyList["nextKey"],
+		PrevKey:  channelModifyKeyList["prevKey"],
+		EnterKey: channelModifyKeyList["enterKey"],
+		EscKey:   channelModifyKeyList["escKey"],
+	}
+}
 
 type channelListItemDelegate struct{}
 

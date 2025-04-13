@@ -18,6 +18,7 @@ import (
 	"maps"
 	"math"
 	"os"
+	"regexp"
 	"slices"
 	"strings"
 
@@ -396,56 +397,6 @@ var (
 		),
 	}
 
-	channelModifyKeyList = map[string]key.Binding{
-		"nextKey": key.NewBinding(
-			key.WithKeys("down", "tab"),
-			key.WithHelp("<down>/<tab>", "next option"),
-		),
-		"prevKey": key.NewBinding(
-			key.WithKeys("up", "shift+tab"),
-			key.WithHelp("<up>/<shift-tab>", "previous option"),
-		),
-		"escKey": key.NewBinding(
-			key.WithKeys("esc"),
-			key.WithHelp("<esc>", "back out to channel view"),
-		),
-		"enterKey": key.NewBinding(
-			key.WithKeys("enter"),
-			key.WithHelp("<enter>", "save changes"),
-		),
-		"leftKey": key.NewBinding(
-			key.WithKeys("left"),
-			key.WithHelp("<left>", "move tag selector to left"),
-		),
-		"rightKey": key.NewBinding(
-			key.WithKeys("right"),
-			key.WithHelp("<right>", "move tag selector to right"),
-		),
-		"spaceKey": key.NewBinding(
-			key.WithKeys(" "),
-			key.WithHelp("<space>", "select or unselect tag"),
-		),
-	}
-
-	tagModifyKeyList = map[string]key.Binding{
-		"nextKey": key.NewBinding(
-			key.WithKeys("down", "tab"),
-			key.WithHelp("<down>/<tab>", "next option"),
-		),
-		"prevKey": key.NewBinding(
-			key.WithKeys("up", "shift+tab"),
-			key.WithHelp("<up>/<shift-tab>", "previous option"),
-		),
-		"escKey": key.NewBinding(
-			key.WithKeys("esc"),
-			key.WithHelp("<esc>", "back out to tag view"),
-		),
-		"enterKey": key.NewBinding(
-			key.WithKeys("enter"),
-			key.WithHelp("<enter>", "select button"),
-		),
-	}
-
 	colourPickerKeyList = map[string]key.Binding{
 		"downKey": key.NewBinding(
 			key.WithKeys("down"),
@@ -481,9 +432,6 @@ var (
 			key.WithKeys("enter"),
 		),
 	}
-
-	channels channel.Channels
-	tags     tag.Tags
 )
 
 const (
@@ -493,138 +441,6 @@ const (
 	tagEntryModifyOperationId int = 1
 	tagEntryDeleteOperationId int = 2
 )
-
-type channelModifyNotesKeyMap struct {
-	NextKey key.Binding
-	PrevKey key.Binding
-	EscKey  key.Binding
-}
-
-func (k channelModifyNotesKeyMap) ShortHelp() []key.Binding {
-	return []key.Binding{k.NextKey, k.PrevKey, k.EscKey}
-}
-func (k channelModifyNotesKeyMap) FullHelp() [][]key.Binding {
-	return [][]key.Binding{
-		{k.NextKey, k.PrevKey, k.EscKey},
-		{},
-	}
-}
-
-func newChannelModifyNotesKeyMap() *channelModifyNotesKeyMap {
-	return &channelModifyNotesKeyMap{
-		NextKey: channelModifyKeyList["nextKey"],
-		PrevKey: channelModifyKeyList["prevKey"],
-		EscKey:  channelModifyKeyList["escKey"],
-	}
-}
-
-type channelModifyTagSelectKeyMap struct {
-	NextKey  key.Binding
-	PrevKey  key.Binding
-	SpaceKey key.Binding
-	LeftKey  key.Binding
-	RightKey key.Binding
-	EscKey   key.Binding
-}
-
-func (k channelModifyTagSelectKeyMap) ShortHelp() []key.Binding {
-	return []key.Binding{k.NextKey, k.PrevKey, k.LeftKey, k.RightKey, k.SpaceKey, k.EscKey}
-}
-func (k channelModifyTagSelectKeyMap) FullHelp() [][]key.Binding {
-	return [][]key.Binding{
-		{k.NextKey, k.PrevKey, k.EscKey},
-		{k.LeftKey, k.RightKey, k.SpaceKey},
-	}
-}
-
-func newChannelModifyTagSelectKeyMap() *channelModifyTagSelectKeyMap {
-	return &channelModifyTagSelectKeyMap{
-		NextKey:  channelModifyKeyList["nextKey"],
-		PrevKey:  channelModifyKeyList["prevKey"],
-		SpaceKey: channelModifyKeyList["spaceKey"],
-		LeftKey:  channelModifyKeyList["leftKey"],
-		RightKey: channelModifyKeyList["rightKey"],
-		EscKey:   channelModifyKeyList["escKey"],
-	}
-}
-
-type channelModifySubmitKeyMap struct {
-	NextKey  key.Binding
-	PrevKey  key.Binding
-	EnterKey key.Binding
-	EscKey   key.Binding
-}
-
-func (k channelModifySubmitKeyMap) ShortHelp() []key.Binding {
-	return []key.Binding{k.NextKey, k.PrevKey, k.EnterKey, k.EscKey}
-}
-
-func (k channelModifySubmitKeyMap) FullHelp() [][]key.Binding {
-	return [][]key.Binding{
-		{k.NextKey, k.PrevKey, k.EscKey},
-		{k.EnterKey},
-	}
-}
-
-func newChannelModifySubmitKeyMap() *channelModifySubmitKeyMap {
-	return &channelModifySubmitKeyMap{
-		NextKey:  channelModifyKeyList["nextKey"],
-		PrevKey:  channelModifyKeyList["prevKey"],
-		EnterKey: channelModifyKeyList["enterKey"],
-		EscKey:   channelModifyKeyList["escKey"],
-	}
-}
-
-type tagModifyInputKeyMap struct {
-	NextKey key.Binding
-	PrevKey key.Binding
-	EscKey  key.Binding
-}
-
-func (k tagModifyInputKeyMap) ShortHelp() []key.Binding {
-	return []key.Binding{k.NextKey, k.PrevKey, k.EscKey}
-}
-func (k tagModifyInputKeyMap) FullHelp() [][]key.Binding {
-	return [][]key.Binding{
-		{k.NextKey, k.PrevKey, k.EscKey},
-		{},
-	}
-}
-
-func newTagModifyInputKeyMap() tagModifyInputKeyMap {
-	return tagModifyInputKeyMap{
-		NextKey: tagModifyKeyList["nextKey"],
-		PrevKey: tagModifyKeyList["prevKey"],
-		EscKey:  tagModifyKeyList["escKey"],
-	}
-}
-
-type tagModifyButtonKeyMap struct {
-	NextKey  key.Binding
-	PrevKey  key.Binding
-	EnterKey key.Binding
-	EscKey   key.Binding
-}
-
-func (k tagModifyButtonKeyMap) ShortHelp() []key.Binding {
-	return []key.Binding{k.NextKey, k.PrevKey, k.EnterKey, k.EscKey}
-}
-
-func (k tagModifyButtonKeyMap) FullHelp() [][]key.Binding {
-	return [][]key.Binding{
-		{k.NextKey, k.PrevKey, k.EscKey},
-		{k.EnterKey},
-	}
-}
-
-func newTagModifyButtonKeyMap() tagModifyButtonKeyMap {
-	return tagModifyButtonKeyMap{
-		NextKey:  tagModifyKeyList["nextKey"],
-		PrevKey:  tagModifyKeyList["prevKey"],
-		EnterKey: tagModifyKeyList["enterKey"],
-		EscKey:   tagModifyKeyList["escKey"],
-	}
-}
 
 type listKeyMap struct {
 	cKey        key.Binding
@@ -669,28 +485,33 @@ func newListKeyMap() *listKeyMap {
 }
 
 type Model struct {
-	current              string
-	list                 list.Model
-	channels             channel.Channels
-	tags                 tag.Tags
-	listKeys             *listKeyMap
-	selectedChannel      channel.Channel
-	selectedTag          tag.Tag
-	selectedChannelId    int
-	selectedTagId        int
-	selectedTagIds       []int
-	tagEntryFocus        int
-	tagEntryOperation    int
-	tagDeleteFocus       int
-	tagDeleteInputs      []string
-	tagEntryInputs       []textinput.Model
-	channelModifyFocus   int
-	channelModifyHeaders []string
-	channelModifyInputs  []textinput.Model
-	colourPickerX        int
-	colourPickerY        int
-	colourPickerTitle    string
-	selectedBackColour   string
+	current                    string
+	previous                   string
+	list                       list.Model
+	channels                   channel.Channels
+	tags                       tag.Tags
+	listKeys                   *listKeyMap
+	selectedChannel            channel.Channel
+	selectedTag                tag.Tag
+	selectedChannelId          int
+	selectedTagId              int
+	selectedTagIds             []int
+	tagEntryFocus              int
+	tagEntryOperation          int
+	tagDeleteFocus             int
+	tagDeleteInputs            []string
+	tagEntryInputs             []textinput.Model
+	channelModifyFocus         int
+	generatePageFocus          int
+	generatePageSelectedTagId  int
+	generatePageInputs         []textinput.Model
+	generatePageSelectedTagIds []int
+	channelModifyHeaders       []string
+	channelModifyInputs        []textinput.Model
+	colourPickerX              int
+	colourPickerY              int
+	colourPickerTitle          string
+	selectedBackColour         string
 }
 
 func (m Model) Init() tea.Cmd {
@@ -720,58 +541,22 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			switch {
 			case key.Matches(msg, m.listKeys.gKey):
 				if m.current == "channel" || m.current == "tag" {
-					genChannels := make([]channel.ExportChannel, 0, len(m.channels.ByName()))
-					genTags := make([]tag.ExportTag, 0, len(m.tags.ByName()))
-
-					for _, chanInfo := range m.channels.ByName() {
-						tmpChan := channel.ExportChannel{
-							Id:          chanInfo.Id(),
-							Name:        chanInfo.Name(),
-							Description: chanInfo.Description(),
-							Notes:       chanInfo.Notes(),
-						}
-						var tmpTags = make(map[string]tag.ExportTag)
-						for _, tagId := range chanInfo.Tags() {
-							tagInfo := m.tags.ById()[tagId]
-							tmpTag := tag.ExportTag{
-								Id:          tagInfo.Id(),
-								Name:        tagInfo.Name(),
-								Description: tagInfo.Description(),
+					m.previous = m.current
+					m.generatePageInputs = m.createGeneratePageForm()
+					// juice the tags
+					if len(m.generatePageSelectedTagIds) == 0 {
+						sortedTags := slices.Sorted(maps.Keys(m.tags.ByName()))
+						for i, tagName := range sortedTags {
+							tag := m.tags.ByName()[tagName]
+							regexpHidden := regexp.MustCompile(`(?i)^(hide|hidden)?$`)
+							if !regexpHidden.Match([]byte(tag.Name())) {
+								m.generatePageSelectedTagIds = append(m.generatePageSelectedTagIds, i)
 							}
-							tmpTags[tmpTag.Name] = tmpTag
 						}
-						sortedTags := slices.Sorted(maps.Keys(tmpTags))
-						for _, tmpTag := range sortedTags {
-							tmpChan.Tags = append(tmpChan.Tags, tmpTags[tmpTag])
-						}
-
-						genChannels = append(genChannels, tmpChan)
 					}
-
-					var tmpTags = make(map[string]tag.ExportTag)
-					for _, tagInfo := range m.tags.ByName() {
-						tmpTag := tag.ExportTag{
-							Id:          tagInfo.Id(),
-							Name:        tagInfo.Name(),
-							Description: tagInfo.Description(),
-							FgColour:    tagInfo.FgColour(),
-							BgColour:    tagInfo.BgColour(),
-						}
-						tmpTags[tmpTag.Name] = tmpTag
-					}
-					sortedTags := slices.Sorted(maps.Keys(tmpTags))
-					for _, tmpTag := range sortedTags {
-						genTags = append(genTags, tmpTags[tmpTag])
-					}
-
-					gen := generator.Generator{
-						Channels: genChannels,
-						Tags:     genTags,
-						Title:    "My Youtube Subscription List",
-					}
-					gen.LoadTemplateFile()
-					gen.OutputFile()
+					m.current = "generatePage"
 				}
+
 				return m, nil
 
 			case key.Matches(msg, m.listKeys.cKey):
@@ -1129,24 +914,50 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case key.Matches(msg, channelModifyKeyList["nextKey"], channelModifyKeyList["prevKey"]):
 				s := msg.String()
 
-				var totalLength = len(m.channelModifyInputs) + 1
+				_, colCount, rowCount := calculateRowCount()
+
+				var totalLength = 1 + rowCount + 1
 
 				// Cycle indexes
-				if s == "up" || s == "shift+tab" {
-					m.channelModifyFocus--
-				} else {
-					m.channelModifyFocus++
+				// if there's no tags, don't use the second focus
+				if m.generatePageFocus == 1 && len(m.tags.ById()) == 0 {
+					m.generatePageFocus++
 				}
 
-				// if there's no tags, don't use the second focus
-				if m.channelModifyFocus == 1 && len(m.tags.ById()) == 0 {
-					m.channelModifyFocus++
+				if m.channelModifyFocus == 1 {
+					if s == "up" || s == "shift+tab" {
+						m.selectedTagId = m.selectedTagId - colCount
+						if m.selectedTagId < 0 {
+							m.selectedTagId = m.selectedTagId + colCount
+							m.channelModifyFocus--
+						}
+					} else {
+						m.selectedTagId = m.selectedTagId + colCount
+						if m.selectedTagId >= len(m.tags.ById()) {
+							m.selectedTagId = m.selectedTagId - colCount
+							m.channelModifyFocus++
+						}
+					}
+				} else {
+					if s == "up" || s == "shift+tab" {
+						m.channelModifyFocus--
+					} else {
+						m.channelModifyFocus++
+					}
 				}
 
 				if m.channelModifyFocus > totalLength {
 					m.channelModifyFocus = 0
+					m.selectedTagId = m.selectedTagId - colCount
+					if m.selectedTagId < 0 {
+						m.selectedTagId = colCount + (m.selectedTagId - colCount)
+					}
 				} else if m.channelModifyFocus < 0 {
 					m.channelModifyFocus = totalLength
+					m.selectedTagId = m.selectedTagId + colCount
+					if m.selectedTagId >= len(m.tags.ById()) {
+						m.selectedTagId = rowCount*colCount + (len(m.tags.ById()) % colCount)
+					}
 				}
 
 				cmds := make([]tea.Cmd, totalLength)
@@ -1329,6 +1140,246 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 
+	case "generatePage":
+		switch msg := msg.(type) {
+		case tea.WindowSizeMsg:
+			h, v := appStyle.GetFrameSize()
+			m.list.SetSize(msg.Width-h, msg.Height-v)
+
+		case tea.KeyMsg:
+			switch {
+			case key.Matches(msg, generatePageKeyList["escKey"]):
+				m.current = m.previous
+				return m, nil
+			case key.Matches(msg, generatePageKeyList["enterKey"]):
+				var totalLength = len(m.generatePageInputs) + 1
+
+				// Did the user press enter while the submit button was focused?
+				// If so, create it.
+				if m.generatePageFocus == totalLength {
+					sortedTags := slices.Sorted(maps.Keys(m.tags.ByName()))
+					hiddenTags := make(map[int64]int, len(sortedTags))
+
+					for _, tagName := range sortedTags {
+						var found bool = false
+						selectedTag := m.tags.ByName()[tagName]
+
+						for _, selectedId := range m.generatePageSelectedTagIds {
+							selectedTagName := sortedTags[selectedId]
+							if tagName == selectedTagName {
+								found = true
+								break
+							}
+						}
+
+						if !found {
+							hiddenTags[selectedTag.Id()] = 1
+						}
+					}
+
+					genChannels := make([]channel.ExportChannel, 0, len(m.channels.ByName()))
+					for _, chanInfo := range m.channels.ByName() {
+						tmpChan := channel.ExportChannel{
+							Id:          chanInfo.Id(),
+							Name:        chanInfo.Name(),
+							Description: chanInfo.Description(),
+							Notes:       chanInfo.Notes(),
+						}
+						var tmpTags = make(map[string]tag.ExportTag)
+						var includeTag bool = true
+
+						for _, tagId := range chanInfo.Tags() {
+							// don't include the channels tagged with hidden tags
+							_, ok := hiddenTags[tagId]
+							if ok {
+								includeTag = false
+								break
+							}
+
+							tagInfo := m.tags.ById()[tagId]
+
+							tmpTag := tag.ExportTag{
+								Id:          tagInfo.Id(),
+								Name:        tagInfo.Name(),
+								Description: tagInfo.Description(),
+							}
+							tmpTags[tmpTag.Name] = tmpTag
+						}
+						if !includeTag {
+							continue
+						}
+						sortedTags := slices.Sorted(maps.Keys(tmpTags))
+						for _, tmpTag := range sortedTags {
+							tmpChan.Tags = append(tmpChan.Tags, tmpTags[tmpTag])
+						}
+
+						genChannels = append(genChannels, tmpChan)
+					}
+
+					var tmpTags = make(map[string]tag.ExportTag)
+					for _, tagInfo := range m.tags.ByName() {
+						var unmatched bool = true
+						for _, selectedId := range m.generatePageSelectedTagIds {
+							testTagId := sortedTags[selectedId]
+							if tagInfo.Name() == testTagId {
+								unmatched = false
+								break
+							}
+						}
+						if unmatched {
+							continue
+						}
+						tmpTag := tag.ExportTag{
+							Id:          tagInfo.Id(),
+							Name:        tagInfo.Name(),
+							Description: tagInfo.Description(),
+							FgColour:    tagInfo.FgColour(),
+							BgColour:    tagInfo.BgColour(),
+						}
+						tmpTags[tmpTag.Name] = tmpTag
+					}
+					genTags := make([]tag.ExportTag, 0, len(sortedTags))
+
+					sortedTags = slices.Sorted(maps.Keys(tmpTags))
+					for _, tmpTag := range sortedTags {
+						genTags = append(genTags, tmpTags[tmpTag])
+					}
+
+					gen := generator.Generator{
+						Channels:     genChannels,
+						Tags:         genTags,
+						Title:        m.generatePageInputs[2].Value(),
+						OutputFile:   m.generatePageInputs[1].Value(),
+						TemplateFile: m.generatePageInputs[0].Value(),
+					}
+					gen.LoadTemplateFile()
+					gen.GenerateOutputFile()
+					m.current = "channel"
+					return m, nil
+				} else {
+					cmd = m.updateGeneratePageInput(msg)
+				}
+			case key.Matches(msg, generatePageKeyList["nextKey"], generatePageKeyList["prevKey"]):
+				s := msg.String()
+
+				_, colCount, rowCount := calculateRowCount()
+
+				var totalLength = len(m.generatePageInputs) + rowCount
+
+				// Cycle indexes
+				// if there's no tags, don't use the second focus
+				if m.generatePageFocus == 3 && len(m.tags.ById()) == 0 {
+					m.generatePageFocus++
+				}
+
+				if m.generatePageFocus == 3 {
+					if s == "up" || s == "shift+tab" {
+						m.generatePageSelectedTagId = m.generatePageSelectedTagId - colCount
+						if m.generatePageSelectedTagId < 0 {
+							m.generatePageSelectedTagId = m.generatePageSelectedTagId + colCount
+							m.generatePageFocus--
+						}
+					} else {
+						m.generatePageSelectedTagId = m.generatePageSelectedTagId + colCount
+						if m.generatePageSelectedTagId >= len(m.tags.ById()) {
+							m.generatePageSelectedTagId = m.generatePageSelectedTagId - colCount
+							m.generatePageFocus++
+						}
+					}
+				} else {
+					if s == "up" || s == "shift+tab" {
+						m.generatePageFocus--
+					} else {
+						m.generatePageFocus++
+					}
+				}
+
+				if m.generatePageFocus > totalLength {
+					m.generatePageFocus = 0
+					m.generatePageSelectedTagId = m.generatePageSelectedTagId - colCount
+					if m.generatePageSelectedTagId < 0 {
+						m.generatePageSelectedTagId = colCount + (m.generatePageSelectedTagId - colCount)
+					}
+				} else if m.generatePageFocus < 0 {
+					m.generatePageFocus = totalLength
+					m.generatePageSelectedTagId = m.generatePageSelectedTagId + colCount
+					if m.generatePageSelectedTagId >= len(m.tags.ById()) {
+						m.generatePageSelectedTagId = rowCount*colCount + (len(m.tags.ById()) % colCount)
+					}
+				}
+
+				cmds := make([]tea.Cmd, totalLength)
+				for i := 0; i < len(m.generatePageInputs); i++ {
+					m.generatePageInputs[i].Blur()
+					m.generatePageInputs[i].PromptStyle = blurredStyle
+					m.generatePageInputs[i].TextStyle = blurredStyle
+				}
+				switch m.generatePageFocus {
+				// template
+				case 0:
+					cmds[0] = m.generatePageInputs[0].Focus()
+					m.generatePageInputs[0].PromptStyle = focusedStyle
+					m.generatePageInputs[0].TextStyle = focusedStyle
+				// output
+				case 1:
+					cmds[1] = m.generatePageInputs[1].Focus()
+					m.generatePageInputs[1].PromptStyle = focusedStyle
+					m.generatePageInputs[1].TextStyle = focusedStyle
+				// title
+				case 2:
+					cmds[2] = m.generatePageInputs[2].Focus()
+					m.generatePageInputs[2].PromptStyle = focusedStyle
+					m.generatePageInputs[2].TextStyle = focusedStyle
+					// tags
+					// submit
+				}
+
+				return m, tea.Batch(cmds...)
+			case key.Matches(msg, generatePageKeyList["leftKey"], generatePageKeyList["rightKey"]):
+				s := msg.String()
+
+				var totalLength = len(m.tags.ById())
+
+				if m.generatePageFocus == 3 {
+					if s == "left" {
+						m.generatePageSelectedTagId--
+					} else {
+						m.generatePageSelectedTagId++
+					}
+
+					if m.generatePageSelectedTagId >= totalLength {
+						m.generatePageSelectedTagId = 0
+					} else if m.generatePageSelectedTagId < 0 {
+						m.generatePageSelectedTagId = totalLength - 1
+					}
+				} else {
+					cmd = m.updateGeneratePageInput(msg)
+				}
+			case key.Matches(msg, generatePageKeyList["spaceKey"]):
+				if m.generatePageFocus == 3 {
+					var newTagIds []int
+					var found bool = false
+
+					for _, currTagId := range m.generatePageSelectedTagIds {
+						if currTagId == m.generatePageSelectedTagId {
+							found = true
+						} else {
+							newTagIds = append(newTagIds, currTagId)
+						}
+					}
+					if !found {
+						m.generatePageSelectedTagIds = append(m.generatePageSelectedTagIds, m.generatePageSelectedTagId)
+					} else {
+						m.generatePageSelectedTagIds = newTagIds
+					}
+				} else {
+					cmd = m.updateGeneratePageInput(msg)
+				}
+				return m, tea.Batch(cmd)
+			default:
+				cmd = m.updateGeneratePageInput(msg)
+			}
+		}
 	}
 	cmds = append(cmds, cmd)
 
@@ -1395,10 +1446,12 @@ func (m Model) View() string {
 		b.WriteRune('\n')
 		tagInputKeyMap := newTagModifyInputKeyMap()
 		tagButtonKeyMap := newTagModifyButtonKeyMap()
-		// err := os.WriteFile("debug.log", []byte(dump.Format(newTagModifyButtonKeyMap())), 0644)
-		// if err != nil {
-		// 	panic(err)
-		// }
+
+		// the 5 is the help height (plus some)
+		_, h, _ := term.GetSize(os.Stdout.Fd())
+		height := h - strings.Count(b.String(), "\n") - 5
+		b.WriteString(strings.Repeat("\n", height))
+
 		help := help.New()
 		help.ShowAll = true
 		switch m.tagEntryFocus {
@@ -1435,15 +1488,7 @@ func (m Model) View() string {
 
 		sortedTags := slices.Sorted(maps.Keys(m.tags.ByName()))
 
-		var cellSize int = 1
-		for _, tagName := range sortedTags {
-			if len(tagName) > cellSize {
-				cellSize = len(tagName)
-			}
-		}
-		cellSize += 2
-		w, _, _ := term.GetSize(os.Stdout.Fd())
-		colCount := int(math.Floor((float64)(w / cellSize)))
+		_, colCount, _ := calculateRowCount()
 
 		var output string
 		var curCol = 0
@@ -1514,6 +1559,11 @@ func (m Model) View() string {
 		b.WriteString(style.Render("this colour signifies there's unsaved changes"))
 		b.WriteRune('\n')
 		b.WriteRune('\n')
+
+		// the 5 is the help height (plus some)
+		_, h, _ := term.GetSize(os.Stdout.Fd())
+		height := h - strings.Count(b.String(), "\n") - 5
+		b.WriteString(strings.Repeat("\n", height))
 
 		channelModifyNotesKeyMap := newChannelModifyNotesKeyMap()
 		channelModifyTagSelectKeyMap := newChannelModifyTagSelectKeyMap()
@@ -1596,6 +1646,93 @@ func (m Model) View() string {
 		b.WriteString(fmt.Sprintf("colour: %s\n", m.selectedBackColour))
 
 		out = b.String()
+
+	case "generatePage":
+		var b strings.Builder
+
+		b.WriteString(fmt.Sprintf("%24s: %s\n", "source template", m.generatePageInputs[0].View()))
+		b.WriteString(fmt.Sprintf("%24s: %s\n", "output file", m.generatePageInputs[1].View()))
+		b.WriteString(fmt.Sprintf("%24s: %s\n", "page title", m.generatePageInputs[2].View()))
+
+		b.WriteRune('\n')
+		b.WriteString("Select what tags to include on the output. By default all tags are selected for display unless the tag is named 'hide' or 'hidden'.\n")
+
+		sortedTags := slices.Sorted(maps.Keys(m.tags.ByName()))
+
+		_, colCount, _ := calculateRowCount()
+
+		var output string
+		var curCol = 0
+		for i, tagName := range sortedTags {
+			tag := m.tags.ByName()[tagName]
+			var style = tagDisplayStyle.Width(len(tagName)).Background(lipgloss.Color("#" + tag.BgColour())).Foreground(lipgloss.Color("#" + tag.FgColour())).Margin(1)
+
+			var selected = true
+			// previously selected
+			selected = false
+			for _, testId := range m.generatePageSelectedTagIds {
+				if testId == i {
+					selected = true
+				}
+			}
+
+			if selected {
+				style = style.Border(lipgloss.NormalBorder(), true, true, true, true)
+			} else {
+				style = style.Border(lipgloss.HiddenBorder(), true, true, true, true)
+			}
+
+			if m.generatePageFocus == 3 {
+				if m.generatePageSelectedTagId == i {
+					style = style.BorderBackground(activeColour)
+				}
+			}
+
+			output = lipgloss.JoinHorizontal(lipgloss.Center, output, style.Render(tagName))
+
+			if (colCount > 2 && curCol > 2 && int(math.Mod(float64(colCount), float64(i+1))) == 0) || i == len(sortedTags)-1 || (colCount <= 2 && curCol+1 == colCount) || curCol+2 > colCount {
+				b.WriteString(output)
+				output = ""
+				curCol = 0
+			} else {
+				curCol++
+			}
+
+		}
+
+		var buttonRef *lipgloss.Style
+		if m.generatePageFocus == len(m.generatePageInputs)+1 {
+			buttonRef = &focusedButtonStyle
+		} else {
+			buttonRef = &blurredButtonStyle
+		}
+		var button = buttonRef.Render("[ Generate ]")
+		fmt.Fprintf(&b, "\n\n%s\n\n", button)
+
+		b.WriteRune('\n')
+		b.WriteRune('\n')
+
+		_, h, _ := term.GetSize(os.Stdout.Fd())
+		// the 5 is the help height 9plus some)
+		height := h - strings.Count(b.String(), "\n") - 5
+		b.WriteString(strings.Repeat("\n", height))
+
+		channelModifyNotesKeyMap := newChannelModifyNotesKeyMap()
+		channelModifyTagSelectKeyMap := newChannelModifyTagSelectKeyMap()
+		channelModifySubmitKeyMap := newChannelModifySubmitKeyMap()
+		help := help.New()
+		help.ShowAll = true
+		switch m.channelModifyFocus {
+		case 0:
+			b.WriteString(help.View(channelModifyNotesKeyMap))
+		case 1:
+			b.WriteString(help.View(channelModifyTagSelectKeyMap))
+		case 2:
+			b.WriteString(help.View(channelModifySubmitKeyMap))
+		}
+
+		out = b.String()
+
 	}
 	return appStyle.Render(out)
 }
@@ -1636,4 +1773,22 @@ func StartTea(channels channel.Channels, tags tag.Tags) {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)
 	}
+}
+
+func calculateRowCount() (int, int, int) {
+	sortedTags := slices.Sorted(maps.Keys(m.tags.ByName()))
+
+	var cellSize int = 1
+	for _, tagName := range sortedTags {
+		if len(tagName) > cellSize {
+			cellSize = len(tagName)
+		}
+	}
+	cellSize += 2
+	w, _, _ := term.GetSize(os.Stdout.Fd())
+	colCount := int(math.Floor((float64)(w / cellSize)))
+
+	rowCount := int(math.Ceil((float64)(len(sortedTags) / colCount)))
+
+	return cellSize, colCount, rowCount
 }

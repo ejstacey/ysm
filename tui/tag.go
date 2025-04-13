@@ -24,12 +24,85 @@ import (
 	"strings"
 
 	"gitea.joyrex.net/ejstacey/ysm/tag"
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/devkvlt/hexer"
 )
+
+var tags tag.Tags
+
+var tagModifyKeyList = map[string]key.Binding{
+	"nextKey": key.NewBinding(
+		key.WithKeys("down", "tab"),
+		key.WithHelp("<down>/<tab>", "next option"),
+	),
+	"prevKey": key.NewBinding(
+		key.WithKeys("up", "shift+tab"),
+		key.WithHelp("<up>/<shift-tab>", "previous option"),
+	),
+	"escKey": key.NewBinding(
+		key.WithKeys("esc"),
+		key.WithHelp("<esc>", "back out to tag view"),
+	),
+	"enterKey": key.NewBinding(
+		key.WithKeys("enter"),
+		key.WithHelp("<enter>", "select button"),
+	),
+}
+
+type tagModifyInputKeyMap struct {
+	NextKey key.Binding
+	PrevKey key.Binding
+	EscKey  key.Binding
+}
+
+func (k tagModifyInputKeyMap) ShortHelp() []key.Binding {
+	return []key.Binding{k.NextKey, k.PrevKey, k.EscKey}
+}
+func (k tagModifyInputKeyMap) FullHelp() [][]key.Binding {
+	return [][]key.Binding{
+		{k.NextKey, k.PrevKey, k.EscKey},
+		{},
+	}
+}
+
+func newTagModifyInputKeyMap() tagModifyInputKeyMap {
+	return tagModifyInputKeyMap{
+		NextKey: tagModifyKeyList["nextKey"],
+		PrevKey: tagModifyKeyList["prevKey"],
+		EscKey:  tagModifyKeyList["escKey"],
+	}
+}
+
+type tagModifyButtonKeyMap struct {
+	NextKey  key.Binding
+	PrevKey  key.Binding
+	EnterKey key.Binding
+	EscKey   key.Binding
+}
+
+func (k tagModifyButtonKeyMap) ShortHelp() []key.Binding {
+	return []key.Binding{k.NextKey, k.PrevKey, k.EnterKey, k.EscKey}
+}
+
+func (k tagModifyButtonKeyMap) FullHelp() [][]key.Binding {
+	return [][]key.Binding{
+		{k.NextKey, k.PrevKey, k.EscKey},
+		{k.EnterKey},
+	}
+}
+
+func newTagModifyButtonKeyMap() tagModifyButtonKeyMap {
+	return tagModifyButtonKeyMap{
+		NextKey:  tagModifyKeyList["nextKey"],
+		PrevKey:  tagModifyKeyList["prevKey"],
+		EnterKey: tagModifyKeyList["enterKey"],
+		EscKey:   tagModifyKeyList["escKey"],
+	}
+}
 
 type tagListItemDelegate struct{}
 

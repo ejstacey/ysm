@@ -22,22 +22,24 @@ import (
 )
 
 type Generator struct {
-	Channels []channel.ExportChannel
-	Tags     []tag.ExportTag
-	Title    string
+	Channels     []channel.ExportChannel
+	Tags         []tag.ExportTag
+	Title        string
+	OutputFile   string
+	TemplateFile string
 }
 
 var t *template.Template
 
 func (g Generator) LoadTemplateFile() {
-	input, err := os.ReadFile("templates/default.tmpl")
+	input, err := os.ReadFile(g.TemplateFile)
 	utils.HandleError(err, "Unable to open template.")
 
 	t = template.Must(template.New("default").Parse(string(input)))
 }
 
-func (g Generator) OutputFile() {
-	fo, err := os.Create("html/index.html")
+func (g Generator) GenerateOutputFile() {
+	fo, err := os.Create(g.OutputFile)
 	utils.HandleError(err, "Unable to open output file.")
 
 	// close fo on exit and check for its returned error
