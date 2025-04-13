@@ -69,9 +69,16 @@ This project was a year of on and off work, and I was learning as I went, so whi
 
 ### Todo
 
-1. Add help entries on screens that don't have them
-2. Create screenshots for the README
-3. Create a youtube video showing a typical process flow.
+In no particular order:
+
+- Add help entries on screens that don't have them
+- Create better handling of non-fatal errors
+- Create confirmation screens
+- Abstract the program themeing out to let people have custom themes
+- Mirror to github for ticket lodging
+- Create screenshots for the README
+- Create a youtube video showing a typical process flow.
+- Squash bugs
 
 ### Database format
 
