@@ -67,6 +67,12 @@ This project was a year of on and off work, and I was learning as I went, so whi
 
 ## Tech stuff
 
+### Todo
+
+1. Add help entries on screens that don't have them
+2. Create screenshots for the README
+3. Create a youtube video showing a typical process flow.
+
 ### Database format
 
 The database is a simple sqlite database with three tables (diagram made with [draw.io](https://www.drawio.com/)):
