@@ -68,13 +68,13 @@ func (k generatePageInputKeyMap) FullHelp() [][]key.Binding {
 	}
 }
 
-// func newGeneratePageInputKeyMap() generatePageInputKeyMap {
-// 	return generatePageInputKeyMap{
-// 		NextKey: generatePageKeyList["nextKey"],
-// 		PrevKey: generatePageKeyList["prevKey"],
-// 		EscKey:  generatePageKeyList["escKey"],
-// 	}
-// }
+func newGeneratePageInputKeyMap() generatePageInputKeyMap {
+	return generatePageInputKeyMap{
+		NextKey: generatePageKeyList["nextKey"],
+		PrevKey: generatePageKeyList["prevKey"],
+		EscKey:  generatePageKeyList["escKey"],
+	}
+}
 
 type generatePageButtonKeyMap struct {
 	NextKey  key.Binding
@@ -94,14 +94,44 @@ func (k generatePageButtonKeyMap) FullHelp() [][]key.Binding {
 	}
 }
 
-// func newGeneratePageButtonKeyMap() generatePageButtonKeyMap {
-// 	return generatePageButtonKeyMap{
-// 		NextKey:  generatePageKeyList["nextKey"],
-// 		PrevKey:  generatePageKeyList["prevKey"],
-// 		EnterKey: generatePageKeyList["enterKey"],
-// 		EscKey:   generatePageKeyList["escKey"],
-// 	}
-// }
+func newGeneratePageButtonKeyMap() generatePageButtonKeyMap {
+	return generatePageButtonKeyMap{
+		NextKey:  generatePageKeyList["nextKey"],
+		PrevKey:  generatePageKeyList["prevKey"],
+		EnterKey: generatePageKeyList["enterKey"],
+		EscKey:   generatePageKeyList["escKey"],
+	}
+}
+
+type generatePageSelectKeyMap struct {
+	NextKey  key.Binding
+	PrevKey  key.Binding
+	SpaceKey key.Binding
+	LeftKey  key.Binding
+	RightKey key.Binding
+	EscKey   key.Binding
+}
+
+func (k generatePageSelectKeyMap) ShortHelp() []key.Binding {
+	return []key.Binding{k.NextKey, k.PrevKey, k.LeftKey, k.RightKey, k.SpaceKey, k.EscKey}
+}
+func (k generatePageSelectKeyMap) FullHelp() [][]key.Binding {
+	return [][]key.Binding{
+		{k.NextKey, k.PrevKey, k.EscKey},
+		{k.LeftKey, k.RightKey, k.SpaceKey},
+	}
+}
+
+func newGeneratePageSelectKeyMap() *generatePageSelectKeyMap {
+	return &generatePageSelectKeyMap{
+		NextKey:  channelModifyKeyList["nextKey"],
+		PrevKey:  channelModifyKeyList["prevKey"],
+		SpaceKey: channelModifyKeyList["spaceKey"],
+		LeftKey:  channelModifyKeyList["leftKey"],
+		RightKey: channelModifyKeyList["rightKey"],
+		EscKey:   channelModifyKeyList["escKey"],
+	}
+}
 
 func (m Model) createGeneratePageForm() []textinput.Model {
 	generatePageInputs := make([]textinput.Model, 3)

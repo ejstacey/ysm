@@ -396,50 +396,6 @@ var (
 			key.WithHelp("g", "generate html output of channels and tags"),
 		),
 	}
-
-	colourPickerKeyList = map[string]key.Binding{
-		"downKey": key.NewBinding(
-			key.WithKeys("down"),
-		),
-		"upKey": key.NewBinding(
-			key.WithKeys("up"),
-		),
-		"leftKey": key.NewBinding(
-			key.WithKeys("left"),
-		),
-		"rightKey": key.NewBinding(
-			key.WithKeys("right"),
-		),
-		"escKey": key.NewBinding(
-			key.WithKeys("esc"),
-		),
-		"enterKey": key.NewBinding(
-			key.WithKeys("enter"),
-		),
-	}
-
-	confirmDeleteKeyList = map[string]key.Binding{
-		"nextKey": key.NewBinding(
-			key.WithKeys("down", "tab", "right"),
-		),
-		"prevKey": key.NewBinding(
-			key.WithKeys("up", "shift+tab", "left"),
-		),
-		"escKey": key.NewBinding(
-			key.WithKeys("esc"),
-		),
-		"enterKey": key.NewBinding(
-			key.WithKeys("enter"),
-		),
-	}
-)
-
-const (
-	tagDeleteCancelButtonId   int = 0
-	tagDeleteDeleteButtonId   int = 1
-	tagEntryCreateOperationId int = 0
-	tagEntryModifyOperationId int = 1
-	tagEntryDeleteOperationId int = 2
 )
 
 type listKeyMap struct {
@@ -481,6 +437,63 @@ func newListKeyMap() *listKeyMap {
 		leftKey:     listKeyList["leftKey"],
 		rightKey:    listKeyList["rightKey"],
 		escKey:      listKeyList["escKey"],
+	}
+}
+
+var colourPickerKeyList = map[string]key.Binding{
+	"nextKey": key.NewBinding(
+		key.WithKeys("down", "tab"),
+		key.WithHelp("<down>/<tab>", "move selector down"),
+	),
+	"prevKey": key.NewBinding(
+		key.WithKeys("up", "shift+tab"),
+		key.WithHelp("<up>/<shift-tab>", "move selector up"),
+	),
+	"escKey": key.NewBinding(
+		key.WithKeys("esc"),
+		key.WithHelp("<esc>", "back out to tag editor"),
+	),
+	"enterKey": key.NewBinding(
+		key.WithKeys("enter"),
+		key.WithHelp("<enter>", "choose colour"),
+	),
+	"leftKey": key.NewBinding(
+		key.WithKeys("left"),
+		key.WithHelp("<left>", "move selector left"),
+	),
+	"rightKey": key.NewBinding(
+		key.WithKeys("right"),
+		key.WithHelp("<right>", "move selector right"),
+	),
+}
+
+type colourPickerKeyMap struct {
+	NextKey  key.Binding
+	PrevKey  key.Binding
+	EnterKey key.Binding
+	LeftKey  key.Binding
+	RightKey key.Binding
+	EscKey   key.Binding
+}
+
+func (k colourPickerKeyMap) ShortHelp() []key.Binding {
+	return []key.Binding{k.NextKey, k.PrevKey, k.LeftKey, k.RightKey, k.EnterKey, k.EscKey}
+}
+func (k colourPickerKeyMap) FullHelp() [][]key.Binding {
+	return [][]key.Binding{
+		{k.NextKey, k.PrevKey, k.EscKey},
+		{k.LeftKey, k.RightKey, k.EnterKey},
+	}
+}
+
+func newColourPickerKeyMap() *colourPickerKeyMap {
+	return &colourPickerKeyMap{
+		NextKey:  colourPickerKeyList["nextKey"],
+		PrevKey:  colourPickerKeyList["prevKey"],
+		EnterKey: colourPickerKeyList["enterKey"],
+		LeftKey:  colourPickerKeyList["leftKey"],
+		RightKey: colourPickerKeyList["rightKey"],
+		EscKey:   colourPickerKeyList["escKey"],
 	}
 }
 
@@ -1033,11 +1046,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case tea.KeyMsg:
 			switch {
-			case key.Matches(msg, confirmDeleteKeyList["escKey"]):
+			case key.Matches(msg, tagSubmenuKeyList["escKey"]):
 				m.current = "tag"
 				return m, nil
 
-			case key.Matches(msg, confirmDeleteKeyList["nextKey"], confirmDeleteKeyList["prevKey"], confirmDeleteKeyList["enterKey"]):
+			case key.Matches(msg, tagSubmenuKeyList["nextKey"], tagSubmenuKeyList["prevKey"], tagSubmenuKeyList["enterKey"]):
 				s := msg.String()
 
 				// Did the user press enter while the submit button was focused?
@@ -1086,7 +1099,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case tea.KeyMsg:
 			switch {
-			case key.Matches(msg, colourPickerKeyList["upKey"]):
+			case key.Matches(msg, colourPickerKeyList["prevKey"]):
 				m.colourPickerY--
 
 				if m.colourPickerY < 0 {
@@ -1095,7 +1108,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.selectedBackColour = colours[m.colourPickerX][m.colourPickerY]
 				return m, nil
 
-			case key.Matches(msg, colourPickerKeyList["downKey"]):
+			case key.Matches(msg, colourPickerKeyList["nextKey"]):
 				m.colourPickerY++
 
 				if m.colourPickerY > len(colours[0])-1 {
@@ -1528,7 +1541,7 @@ func (m Model) View() string {
 				style = style.BorderBackground(unsavedColour)
 			}
 
-			if 1 == m.channelModifyFocus {
+			if m.channelModifyFocus == 1 {
 				if m.selectedTagId == i {
 					style = style.BorderBackground(activeColour)
 				}
@@ -1608,6 +1621,17 @@ func (m Model) View() string {
 		button = fmt.Sprintf("[ %s ]", buttonRef.Render("Delete"))
 		fmt.Fprintf(&b, "%s\n", button)
 
+		tagSubmenuKeyMap := newTagSubmenuKeyMap()
+
+		// the 5 is the help height (plus some)
+		_, h, _ := term.GetSize(os.Stdout.Fd())
+		height := h - strings.Count(b.String(), "\n") - 5
+		b.WriteString(strings.Repeat("\n", height))
+
+		help := help.New()
+		help.ShowAll = true
+		b.WriteString(help.View(tagSubmenuKeyMap))
+
 		out = b.String()
 
 	case "colourPicker":
@@ -1644,6 +1668,17 @@ func (m Model) View() string {
 		b.WriteString(fmt.Sprintf("Y (row): %d\n", m.colourPickerY))
 		// b.WriteString(fmt.Sprintf("textColour: %s\n", m.selectedTextColour))
 		b.WriteString(fmt.Sprintf("colour: %s\n", m.selectedBackColour))
+
+		_, h, _ := term.GetSize(os.Stdout.Fd())
+		// the 5 is the help height 9plus some)
+		height := h - strings.Count(b.String(), "\n") - 5
+		b.WriteString(strings.Repeat("\n", height))
+
+		colourPickerKeyMap := newColourPickerKeyMap()
+
+		help := help.New()
+		help.ShowAll = true
+		b.WriteString(help.View(colourPickerKeyMap))
 
 		out = b.String()
 
@@ -1717,18 +1752,22 @@ func (m Model) View() string {
 		height := h - strings.Count(b.String(), "\n") - 5
 		b.WriteString(strings.Repeat("\n", height))
 
-		channelModifyNotesKeyMap := newChannelModifyNotesKeyMap()
-		channelModifyTagSelectKeyMap := newChannelModifyTagSelectKeyMap()
-		channelModifySubmitKeyMap := newChannelModifySubmitKeyMap()
+		generatePageInputKeyMap := newGeneratePageInputKeyMap()
+		generatePageSelectKeyMap := newGeneratePageSelectKeyMap()
+		generatePageButtonKeyMap := newGeneratePageButtonKeyMap()
 		help := help.New()
 		help.ShowAll = true
-		switch m.channelModifyFocus {
+		switch m.generatePageFocus {
 		case 0:
-			b.WriteString(help.View(channelModifyNotesKeyMap))
+			b.WriteString(help.View(generatePageInputKeyMap))
 		case 1:
-			b.WriteString(help.View(channelModifyTagSelectKeyMap))
+			b.WriteString(help.View(generatePageInputKeyMap))
 		case 2:
-			b.WriteString(help.View(channelModifySubmitKeyMap))
+			b.WriteString(help.View(generatePageInputKeyMap))
+		case 3:
+			b.WriteString(help.View(generatePageSelectKeyMap))
+		case 4:
+			b.WriteString(help.View(generatePageButtonKeyMap))
 		}
 
 		out = b.String()
@@ -1786,9 +1825,9 @@ func calculateRowCount() (int, int, int) {
 	}
 	cellSize += 2
 	w, _, _ := term.GetSize(os.Stdout.Fd())
-	colCount := int(math.Floor((float64)(w / cellSize)))
+	colCount := w / cellSize
 
-	rowCount := int(math.Ceil((float64)(len(sortedTags) / colCount)))
+	rowCount := len(sortedTags) / colCount
 
 	return cellSize, colCount, rowCount
 }

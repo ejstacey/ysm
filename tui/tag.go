@@ -34,6 +34,14 @@ import (
 
 var tags tag.Tags
 
+const (
+	tagDeleteCancelButtonId   int = 0
+	tagDeleteDeleteButtonId   int = 1
+	tagEntryCreateOperationId int = 0
+	tagEntryModifyOperationId int = 1
+	tagEntryDeleteOperationId int = 2
+)
+
 var tagModifyKeyList = map[string]key.Binding{
 	"nextKey": key.NewBinding(
 		key.WithKeys("down", "tab"),
@@ -101,6 +109,52 @@ func newTagModifyButtonKeyMap() tagModifyButtonKeyMap {
 		PrevKey:  tagModifyKeyList["prevKey"],
 		EnterKey: tagModifyKeyList["enterKey"],
 		EscKey:   tagModifyKeyList["escKey"],
+	}
+}
+
+var tagSubmenuKeyList = map[string]key.Binding{
+	"nextKey": key.NewBinding(
+		key.WithKeys("down", "tab", "right"),
+		key.WithHelp("<down>/<tab>", "next option"),
+	),
+	"prevKey": key.NewBinding(
+		key.WithKeys("up", "shift+tab", "left"),
+		key.WithHelp("<up>/<shift-tab>", "previous option"),
+	),
+	"escKey": key.NewBinding(
+		key.WithKeys("esc"),
+		key.WithHelp("<esc>", "back out to tag list"),
+	),
+	"enterKey": key.NewBinding(
+		key.WithKeys("enter"),
+		key.WithHelp("<enter>", "select button"),
+	),
+}
+
+type tagSubmenuKeyMap struct {
+	NextKey  key.Binding
+	PrevKey  key.Binding
+	EnterKey key.Binding
+	EscKey   key.Binding
+}
+
+func (k tagSubmenuKeyMap) ShortHelp() []key.Binding {
+	return []key.Binding{k.NextKey, k.PrevKey, k.EnterKey, k.EscKey}
+}
+
+func (k tagSubmenuKeyMap) FullHelp() [][]key.Binding {
+	return [][]key.Binding{
+		{k.NextKey, k.PrevKey, k.EscKey},
+		{k.EnterKey},
+	}
+}
+
+func newTagSubmenuKeyMap() tagSubmenuKeyMap {
+	return tagSubmenuKeyMap{
+		NextKey:  tagSubmenuKeyList["nextKey"],
+		PrevKey:  tagSubmenuKeyList["prevKey"],
+		EnterKey: tagSubmenuKeyList["enterKey"],
+		EscKey:   tagSubmenuKeyList["escKey"],
 	}
 }
 
