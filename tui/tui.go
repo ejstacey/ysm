@@ -395,7 +395,13 @@ var (
 			key.WithKeys("g"),
 			key.WithHelp("g", "generate html output of channels and tags"),
 		),
+		"uKey": key.NewBinding(
+			key.WithKeys("u"),
+			key.WithHelp("u", "toggle to show only untagged channgels"),
+		),
 	}
+
+	untaggedFilter bool = false
 )
 
 type listKeyMap struct {
@@ -408,6 +414,7 @@ type listKeyMap struct {
 	qKey        key.Binding
 	nKey        key.Binding
 	gKey        key.Binding
+	uKey        key.Binding
 	tabKey      key.Binding
 	shiftTabKey key.Binding
 	enterKey    key.Binding
@@ -429,6 +436,7 @@ func newListKeyMap() *listKeyMap {
 		dKey:        listKeyList["dKey"],
 		mKey:        listKeyList["mKey"],
 		gKey:        listKeyList["gKey"],
+		uKey:        listKeyList["uKey"],
 		tabKey:      listKeyList["tabKey"],
 		shiftTabKey: listKeyList["shiftTabKey"],
 		enterKey:    listKeyList["enterKey"],
@@ -573,6 +581,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 				return m, nil
 
+			case key.Matches(msg, m.listKeys.uKey):
+				if m.current == "channel" {
+					untaggedFilter = !untaggedFilter
+				}
+
+				return m, nil
+
 			case key.Matches(msg, m.listKeys.cKey):
 				m.current = "channel"
 				width := m.list.Width()
@@ -587,6 +602,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						listKeys.pKey,
 						listKeys.enterKey,
 						listKeys.gKey,
+						listKeys.uKey,
 					}
 				}
 				m.list.AdditionalFullHelpKeys = func() []key.Binding {
@@ -595,6 +611,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						listKeys.pKey,
 						listKeys.enterKey,
 						listKeys.gKey,
+						listKeys.uKey,
 					}
 				}
 
@@ -1796,6 +1813,7 @@ func StartTea(channels channel.Channels, tags tag.Tags, settings utils.Settings)
 			listKeys.pKey,
 			listKeys.enterKey,
 			listKeys.gKey,
+			listKeys.uKey,
 		}
 	}
 	m.list.AdditionalFullHelpKeys = func() []key.Binding {
@@ -1804,6 +1822,7 @@ func StartTea(channels channel.Channels, tags tag.Tags, settings utils.Settings)
 			listKeys.pKey,
 			listKeys.enterKey,
 			listKeys.gKey,
+			listKeys.uKey,
 		}
 	}
 

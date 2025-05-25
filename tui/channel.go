@@ -157,6 +157,10 @@ func (d channelListItemDelegate) Render(w io.Writer, m list.Model, index int, li
 
 	var channelTags = make(map[string]string)
 
+	if untaggedFilter && len(item.Tags()) > 0 {
+		return
+	}
+
 	var b strings.Builder
 	for _, tagId := range item.Tags() {
 		tmpTag := tags.ById()[tagId]
