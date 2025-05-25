@@ -147,19 +147,19 @@ func (m Model) createGeneratePageForm() []textinput.Model {
 		case 0:
 			t.Placeholder = "location of template file relative to running directory (or absolute path)"
 			t.CharLimit = 256
-			t.SetValue("templates/default.tmpl")
+			t.SetValue(m.settings.Generator.TemplateFile)
 			t.Focus()
 			t.PromptStyle = focusedStyle
 			t.TextStyle = focusedStyle
 		case 1:
 			t.Placeholder = "location of output file relative to running directory (or absolute path)"
 			t.CharLimit = 256
-			t.SetValue("html/index.html")
+			t.SetValue(m.settings.Generator.OutputFile)
 		case 2:
 			t.Placeholder = "title for the page"
 			t.CharLimit = 512
 			t.Width = 512
-			t.SetValue("My Youtube Subscriptions")
+			t.SetValue(m.settings.Generator.Title)
 		}
 
 		generatePageInputs[i] = t

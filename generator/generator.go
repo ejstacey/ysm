@@ -15,6 +15,7 @@ package generator
 import (
 	"html/template"
 	"os"
+	"time"
 
 	"gitea.joyrex.net/ejstacey/ysm/channel"
 	"gitea.joyrex.net/ejstacey/ysm/tag"
@@ -22,11 +23,12 @@ import (
 )
 
 type Generator struct {
-	Channels     []channel.ExportChannel
-	Tags         []tag.ExportTag
-	Title        string
-	OutputFile   string
-	TemplateFile string
+	Channels         []channel.ExportChannel
+	Tags             []tag.ExportTag
+	Title            string
+	OutputFile       string
+	TemplateFile     string
+	GenerateDateTime string
 }
 
 var t *template.Template
@@ -47,6 +49,8 @@ func (g Generator) GenerateOutputFile() {
 		err := fo.Close()
 		utils.HandleError(err, "Unable to close output file.")
 	}()
+
+	g.GenerateDateTime = time.Now().Format(time.UnixDate)
 
 	err = t.Execute(fo, g)
 	if err != nil {

@@ -13,45 +13,21 @@ You should have received a copy of the GNU General Public License along with thi
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"os"
 
 	"gitea.joyrex.net/ejstacey/ysm/channel"
 	"gitea.joyrex.net/ejstacey/ysm/tag"
 	"gitea.joyrex.net/ejstacey/ysm/tui"
 	"gitea.joyrex.net/ejstacey/ysm/utils"
-	"github.com/adhocore/jsonc"
 	_ "github.com/ncruces/go-sqlite3/driver"
 	_ "github.com/ncruces/go-sqlite3/embed"
 )
-
-type Settings struct {
-	Refresh bool   `json:"Refresh"`
-	DbFile  string `json:"DbFile"`
-}
-
-// My stuff
-
-func loadSettings() Settings {
-	j := jsonc.New()
-
-	input, err := os.ReadFile("settings.json")
-	utils.HandleError(err, "Unable to open settings.json")
-
-	input = j.Strip(input)
-	var settings Settings
-	err = json.Unmarshal(input, &settings)
-	utils.HandleError(err, "Unable to read settings.json")
-
-	return settings
-}
 
 func main() {
 	var channels channel.Channels
 	var tags tag.Tags
 
-	var settings = loadSettings()
+	var settings = utils.LoadSettings()
 
 	utils.InitDb(settings.DbFile)
 
@@ -69,7 +45,7 @@ func main() {
 	tags.LoadEntriesFromDb()
 	// dump.Print(genTags)
 
-	tui.StartTea(channels, tags)
+	tui.StartTea(channels, tags, settings)
 }
 
 // err := os.WriteFile("debug.log", []byte(dump.Format(tag)), 0644)

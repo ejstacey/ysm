@@ -502,6 +502,7 @@ type Model struct {
 	previous                   string
 	list                       list.Model
 	channels                   channel.Channels
+	settings                   utils.Settings
 	tags                       tag.Tags
 	listKeys                   *listKeyMap
 	selectedChannel            channel.Channel
@@ -1778,11 +1779,12 @@ func (m Model) View() string {
 
 var m Model
 
-func StartTea(channels channel.Channels, tags tag.Tags) {
+func StartTea(channels channel.Channels, tags tag.Tags, settings utils.Settings) {
 	listKeys := newListKeyMap()
 
 	m.channels = channels
 	m.tags = tags
+	m.settings = settings
 
 	m.current = "channel"
 	m.list = list.New(m.generateChannelItems(), channelListItemDelegate{}, 0, 0)
