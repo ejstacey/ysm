@@ -50,19 +50,12 @@ Help is at the bottom of most screens. If you hit a bug, email me at [ejstacey@j
 ## FAQ
 
 1. This is too much work, why didn't you do a webpage to do all this so I can edit/display in my browser?  
-
 I really, really, really don't want your data (and you shouldn't want to hand it over to me). I think there's value in people learning to create/edit webpages, and doing something basic like having the majority filled out for you so you can learn by doing tweaks to something that is there for the most part. There's movements out there to embrace/return to what is called the [small web](https://benhoyt.com/writings/the-small-web-is-beautiful/). I don't follow this perfectly (using javascript), but self-hosting is a bit part of it, and this does that.
-
 2. So where can I host this?
-
 ISPs used to give webspace, yours may still do it. Otherwise I've heard good things about [neocities](https://neocities.org/).
-
 3. Why is this so ugly?
-
 I am really not a UX guy, which means this was a ridiculous task for me to pick up, since there's both a web frontend and the program frontend. I have plans to let people define colours in settings.json so they can make it look nicer.
-
 4. I was looking at your code and there's some sloppiness in there
-
 This project was a year of on and off work, and I was learning as I went, so while the logic works (I think), the code might not be as clean or efficient as it could be. I am going back and still cleaning stuff up as I add more polish to the program.
 
 ## Tech stuff
@@ -91,6 +84,7 @@ The database is a simple sqlite database with three tables (diagram made with [d
 This program uses Google's OAuth to retrieve your subscription list. The only permission it uses is "youtube.YoutubeReadonlyScope" so it can grab your subscriptions. All data it grabs is stored locally on your machine. Nothing is sent to me/stored on my side/etc. The code for authenticating to youtube is [here](https://gitea.joyrex.net/ejstacey/ysm/src/branch/main/utils/youtube.go) and the code for grabbing the subscriptions is [here](https://gitea.joyrex.net/ejstacey/ysm/src/branch/main/channel/channel.go#L29).
 
 Youtube subscription info is retrieved in two situations:
+
 - The channel database is empty
 - You set "Refresh" to "true" in your settings.json file.
 
