@@ -157,10 +157,6 @@ func (d channelListItemDelegate) Render(w io.Writer, m list.Model, index int, li
 
 	var channelTags = make(map[string]string)
 
-	if untaggedFilter && len(item.Tags()) > 0 {
-		return
-	}
-
 	var b strings.Builder
 	for _, tagId := range item.Tags() {
 		tmpTag := tags.ById()[tagId]
@@ -195,7 +191,7 @@ func (d channelListItemDelegate) Render(w io.Writer, m list.Model, index int, li
 	fmt.Fprint(w, fn(str))
 }
 
-func (m Model) generateChannelItems() []list.Item {
+func (m Model) generateChannelItems(untaggedFilter bool) []list.Item {
 	var items []list.Item
 
 	keys := make([]string, 0, len(m.channels.ByName()))
@@ -206,8 +202,12 @@ func (m Model) generateChannelItems() []list.Item {
 
 	for _, key := range keys {
 		var channel = m.channels.ByName()[key]
-		items = append(items, channel)
+		if !untaggedFilter || len(channel.Tags()) == 0 {
+			items = append(items, channel)
+		}
 	}
+
+	// os.WriteFile("debug-items.log", []byte(dump.Format(items)), 0644)
 
 	return items
 }

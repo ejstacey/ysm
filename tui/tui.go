@@ -584,6 +584,38 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case key.Matches(msg, m.listKeys.uKey):
 				if m.current == "channel" {
 					untaggedFilter = !untaggedFilter
+					m.list.ResetSelected()
+
+					width := m.list.Width()
+					height := m.list.Height()
+					m.list = list.New(m.generateChannelItems(untaggedFilter), channelListItemDelegate{}, width, height)
+					m.list.Title = "YSM - Channel View"
+					m.list.Styles.Title = titleStyle
+					m.list.ResetSelected()
+					listKeys := newListKeyMap()
+					m.list.AdditionalShortHelpKeys = func() []key.Binding {
+						return []key.Binding{
+							listKeys.tKey,
+							listKeys.pKey,
+							listKeys.enterKey,
+							listKeys.gKey,
+							listKeys.uKey,
+						}
+					}
+					m.list.AdditionalFullHelpKeys = func() []key.Binding {
+						return []key.Binding{
+							listKeys.tKey,
+							listKeys.pKey,
+							listKeys.enterKey,
+							listKeys.gKey,
+							listKeys.uKey,
+						}
+					}
+
+					// set selected channel
+					if m.selectedChannelId != -1 {
+						m.list.Select(m.selectedChannelId)
+					}
 				}
 
 				return m, nil
@@ -592,7 +624,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.current = "channel"
 				width := m.list.Width()
 				height := m.list.Height()
-				m.list = list.New(m.generateChannelItems(), channelListItemDelegate{}, width, height)
+				m.list = list.New(m.generateChannelItems(untaggedFilter), channelListItemDelegate{}, width, height)
 				m.list.Title = "YSM - Channel View"
 				m.list.Styles.Title = titleStyle
 				listKeys := newListKeyMap()
@@ -616,10 +648,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 
 				// set selected channel
-				if m.current == "channel" {
-					if m.selectedChannelId != -1 {
-						m.list.Select(m.selectedChannelId)
-					}
+				if m.selectedChannelId != -1 {
+					m.list.Select(m.selectedChannelId)
 				}
 
 				return m, nil
@@ -936,7 +966,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					utils.HandleError(err, "updating channel tags")
 					m.selectedTagIds = nil
 					m.channels.LoadEntriesFromDb()
-					m.list.SetItems(m.generateChannelItems())
+					m.list.SetItems(m.generateChannelItems(untaggedFilter))
 					m.current = "channel"
 					return m, nil
 				} else {
@@ -1804,7 +1834,7 @@ func StartTea(channels channel.Channels, tags tag.Tags, settings utils.Settings)
 	m.settings = settings
 
 	m.current = "channel"
-	m.list = list.New(m.generateChannelItems(), channelListItemDelegate{}, 0, 0)
+	m.list = list.New(m.generateChannelItems(untaggedFilter), channelListItemDelegate{}, 0, 0)
 	m.list.Title = "YSM - Channel View"
 	m.list.Styles.Title = titleStyle
 	m.list.AdditionalShortHelpKeys = func() []key.Binding {
