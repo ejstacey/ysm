@@ -3,7 +3,7 @@
 
 ## Standard Info
 
-![Janky YSM Logo](https://gitea.joyrex.net/ejstacey/ysm/raw/branch/main/assets/120px-logo.png "YSM")
+![Janky YSM Logo](https://repo.joyrex.net/ejstacey/ysm/raw/branch/main/assets/120px-logo.png "YSM")
 
 Joyrex YSM is a TUI-based application (using [Bubble Tea](https://github.com/charmbracelet/bubbletea) and [Lip Gloss](https://github.com/charmbracelet/lipgloss) for UI elements) used for keeping a local index of your Youtube Subscriptions and letting you attach notes and tags to them. The idea is this is a backend application that prepares the database so a frontend application can handle displaying the subscription list for a specific tag/whatever, however there is a basic html page generator included as well.
 
@@ -13,13 +13,13 @@ You can see what the built-in generator output looks like [here](https://joyrex.
 
 ### Downloading
 
-Official releases are on the [releases page](https://gitea.joyrex.net/ejstacey/ysm/releases).
+Official releases are on the [releases page](https://repo.joyrex.net/ejstacey/ysm/releases).
 
 ### Compiling
 
 You can build this yourself by doing the following:
 
-    git clone https://gitea.joyrex.net/ejstacey/ysm.git
+    git clone https://repo.joyrex.net/ejstacey/ysm.git
     cd ysm
     go build .
 
@@ -77,11 +77,11 @@ In no particular order:
 
 The database is a simple sqlite database with three tables (diagram made with [draw.io](https://www.drawio.com/)):
 
-![DB ERD for YSM](https://gitea.joyrex.net/ejstacey/ysm/raw/branch/main/assets/ysm-erd.png "YSM")
+![DB ERD for YSM](https://repo.joyrex.net/ejstacey/ysm/raw/branch/main/assets/ysm-erd.png "YSM")
 
 ### Youtube Access
 
-This program uses Google's OAuth to retrieve your subscription list. The only permission it uses is "youtube.YoutubeReadonlyScope" so it can grab your subscriptions. All data it grabs is stored locally on your machine. Nothing is sent to me/stored on my side/etc. The code for authenticating to youtube is [here](https://gitea.joyrex.net/ejstacey/ysm/src/branch/main/utils/youtube.go) and the code for grabbing the subscriptions is [here](https://gitea.joyrex.net/ejstacey/ysm/src/branch/main/channel/channel.go#L29).
+This program uses Google's OAuth to retrieve your subscription list. The only permission it uses is "youtube.YoutubeReadonlyScope" so it can grab your subscriptions. All data it grabs is stored locally on your machine. Nothing is sent to me/stored on my side/etc. The code for authenticating to youtube is [here](https://repo.joyrex.net/ejstacey/ysm/src/branch/main/utils/youtube.go) and the code for grabbing the subscriptions is [here](https://repo.joyrex.net/ejstacey/ysm/src/branch/main/channel/channel.go#L29).
 
 Youtube subscription info is retrieved in two situations:
 
@@ -92,4 +92,4 @@ In these situations the program will give you a browser link to auth with google
 
 ## Privacy Policy and Terms of Service
 
-Please see our [privacy policy](https://gitea.joyrex.net/ejstacey/ysm/raw/branch/main/PRIVACY-POLICY) and [terms of service](https://gitea.joyrex.net/ejstacey/ysm/raw/branch/main/TERMS-OF-SERVICE) in the root of this repository for the respective information.
+Please see our [privacy policy](https://repo.joyrex.net/ejstacey/ysm/raw/branch/main/PRIVACY-POLICY) and [terms of service](https://repo.joyrex.net/ejstacey/ysm/raw/branch/main/TERMS-OF-SERVICE) in the root of this repository for the respective information.
