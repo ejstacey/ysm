@@ -20,12 +20,12 @@ import (
 	"sort"
 	"strings"
 
-	"gitea.joyrex.net/ejstacey/ysm/channel"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"repo.joyrex.net/ejstacey/ysm/channel"
 )
 
 var channels channel.Channels

@@ -23,13 +23,13 @@ import (
 	"sort"
 	"strings"
 
-	"gitea.joyrex.net/ejstacey/ysm/tag"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/devkvlt/hexer"
+	"repo.joyrex.net/ejstacey/ysm/tag"
 )
 
 var tags tag.Tags

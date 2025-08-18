@@ -1,4 +1,4 @@
-module gitea.joyrex.net/ejstacey/ysm
+module repo.joyrex.net/ejstacey/ysm
 
 go 1.23.6
 

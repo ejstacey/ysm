@@ -19,10 +19,10 @@ import (
 	"slices"
 	"time"
 
-	"gitea.joyrex.net/ejstacey/ysm/tag"
-	"gitea.joyrex.net/ejstacey/ysm/utils"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/googleapi"
+	"repo.joyrex.net/ejstacey/ysm/tag"
+	"repo.joyrex.net/ejstacey/ysm/utils"
 )
 
 type ExportChannel struct {

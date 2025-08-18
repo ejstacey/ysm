@@ -15,12 +15,12 @@ package main
 import (
 	"fmt"
 
-	"gitea.joyrex.net/ejstacey/ysm/channel"
-	"gitea.joyrex.net/ejstacey/ysm/tag"
-	"gitea.joyrex.net/ejstacey/ysm/tui"
-	"gitea.joyrex.net/ejstacey/ysm/utils"
 	_ "github.com/ncruces/go-sqlite3/driver"
 	_ "github.com/ncruces/go-sqlite3/embed"
+	"repo.joyrex.net/ejstacey/ysm/channel"
+	"repo.joyrex.net/ejstacey/ysm/tag"
+	"repo.joyrex.net/ejstacey/ysm/tui"
+	"repo.joyrex.net/ejstacey/ysm/utils"
 )
 
 func main() {
