@@ -34,6 +34,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/x/term"
 	"github.com/devkvlt/hexer"
+	"github.com/gookit/goutil/dump"
 )
 
 var (
@@ -592,6 +593,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.list.Title = "YSM - Channel View"
 					m.list.Styles.Title = titleStyle
 					m.list.ResetSelected()
+					os.WriteFile("debug.log", []byte(dump.Format(m.list)), 0644)
 					listKeys := newListKeyMap()
 					m.list.AdditionalShortHelpKeys = func() []key.Binding {
 						return []key.Binding{
