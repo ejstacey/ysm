@@ -22,10 +22,6 @@ import (
 	"slices"
 	"strings"
 
-	"gitea.joyrex.net/ejstacey/ysm/channel"
-	"gitea.joyrex.net/ejstacey/ysm/generator"
-	"gitea.joyrex.net/ejstacey/ysm/tag"
-	"gitea.joyrex.net/ejstacey/ysm/utils"
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
@@ -35,6 +31,10 @@ import (
 	"github.com/charmbracelet/x/term"
 	"github.com/devkvlt/hexer"
 	"github.com/gookit/goutil/dump"
+	"repo.joyrex.net/ejstacey/ysm/channel"
+	"repo.joyrex.net/ejstacey/ysm/generator"
+	"repo.joyrex.net/ejstacey/ysm/tag"
+	"repo.joyrex.net/ejstacey/ysm/utils"
 )
 
 var (

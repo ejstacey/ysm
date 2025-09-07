@@ -20,7 +20,7 @@ import (
 	"slices"
 	"time"
 
-	"gitea.joyrex.net/ejstacey/ysm/utils"
+	"repo.joyrex.net/ejstacey/ysm/utils"
 )
 
 type ExportTag struct {
