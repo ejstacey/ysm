@@ -591,7 +591,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.list.Title = "YSM - Channel View"
 					m.list.Styles.Title = titleStyle
 					m.list.ResetSelected()
-					m.selectedChannelId = -1
 					listKeys := newListKeyMap()
 					m.list.AdditionalShortHelpKeys = func() []key.Binding {
 						return []key.Binding{
@@ -610,11 +609,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 							listKeys.gKey,
 							listKeys.uKey,
 						}
-					}
-
-					// set selected channel
-					if m.selectedChannelId != -1 {
-						m.list.Select(m.selectedChannelId)
 					}
 				}
 
