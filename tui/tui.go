@@ -30,7 +30,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/x/term"
 	"github.com/devkvlt/hexer"
-	"github.com/gookit/goutil/dump"
 	"repo.joyrex.net/ejstacey/ysm/channel"
 	"repo.joyrex.net/ejstacey/ysm/generator"
 	"repo.joyrex.net/ejstacey/ysm/tag"
@@ -585,7 +584,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case key.Matches(msg, m.listKeys.uKey):
 				if m.current == "channel" {
 					untaggedFilter = !untaggedFilter
-					m.list.ResetSelected()
 
 					width := m.list.Width()
 					height := m.list.Height()
@@ -593,7 +591,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.list.Title = "YSM - Channel View"
 					m.list.Styles.Title = titleStyle
 					m.list.ResetSelected()
-					os.WriteFile("debug.log", []byte(dump.Format(m.list)), 0644)
+					m.selectedChannelId = -1
 					listKeys := newListKeyMap()
 					m.list.AdditionalShortHelpKeys = func() []key.Binding {
 						return []key.Binding{
@@ -872,15 +870,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					var j int
 					// laying this out like this because I'm currently too stoned to
 					// keep the different permutations in my head
-					if i == 0 {
+					switch i {
+					case 0:
 						j = 0
-					} else if i == 1 {
+					case 1:
 						j = 1
-					} else if i == 2 {
+					case 2:
 						j = 2
 						// } else if i == 3 {
 						// 	j = 2
-					} else if i == 4 {
+					case 4:
 						j = 3
 						// } else if i == 5 {
 						// 	j = 3
@@ -1455,6 +1454,7 @@ func (m Model) View() string {
 	case "channel", "tag":
 		channels = m.channels
 		tags = m.tags
+		// os.WriteFile("debug.log", []byte(dump.Format(m.list)), 0644)
 		out = m.list.View()
 
 	case "tagEntry":
