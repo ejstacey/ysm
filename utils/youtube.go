@@ -19,13 +19,11 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"os"
 	"os/exec"
-	"os/user"
-	"path/filepath"
 	"time"
 
+	gap "github.com/muesli/go-app-paths"
 	"golang.org/x/oauth2"
 
 	"golang.org/x/oauth2/google"
@@ -116,14 +114,12 @@ func tokenFromWeb(ctx context.Context, config *oauth2.Config) *oauth2.Token {
 // tokenCacheFile generates credential file path/filename.
 // It returns the generated credential path/filename.
 func tokenCacheFile() (string, error) {
-	usr, err := user.Current()
-	if err != nil {
-		return "", err
-	}
-	tokenCacheDir := filepath.Join(usr.HomeDir, ".credentials")
+	credScope := gap.NewVendorScope(gap.User, "ysm", "credentials")
+	credDirs, err := credScope.DataDirs()
+	HandleError(err, "Could not determine user config path for youtube credentials!")
+	tokenCacheDir := credDirs[0]
 	os.MkdirAll(tokenCacheDir, 0700)
-	return filepath.Join(tokenCacheDir,
-		url.QueryEscape("ysm.json")), err
+	return credScope.ConfigPath("ysm-youtube-creds.json")
 }
 
 // tokenFromFile retrieves a Token from a given file path.
