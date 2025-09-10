@@ -15,6 +15,7 @@ package generator
 import (
 	"html/template"
 	"os"
+	"path/filepath"
 	"time"
 
 	"repo.joyrex.net/ejstacey/ysm/channel"
@@ -41,6 +42,13 @@ func (g Generator) LoadTemplateFile() {
 }
 
 func (g Generator) GenerateOutputFile() {
+	dir := filepath.Dir(g.OutputFile)
+	result, err := utils.FileDirExists(dir)
+	utils.HandleError(err, "Checking for existence of output directory.")
+	if !result {
+		os.MkdirAll(dir, 0755)
+	}
+
 	fo, err := os.Create(g.OutputFile)
 	utils.HandleError(err, "Unable to open output file.")
 

@@ -14,9 +14,7 @@ package utils
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
-	"io/fs"
 	"os"
 
 	"github.com/adhocore/jsonc"
@@ -59,7 +57,7 @@ func LoadSettings() Settings {
 
 	settingsFile, err := userScope.ConfigPath("settings.json")
 	HandleError(err, "Could not determine user config file!")
-	result, err := exists(settingsFile)
+	result, err := FileDirExists(settingsFile)
 	HandleError(err, "Checking for existence of user settings file.")
 	if !result {
 		fmt.Printf("No settings file exists. Creating default one at: " + settingsFile + ".\n")
@@ -79,15 +77,4 @@ func LoadSettings() Settings {
 	HandleError(err, "Unable to read settings.json")
 
 	return settings
-}
-
-func exists(path string) (bool, error) {
-	_, err := os.Stat(path)
-	if err == nil {
-		return true, nil
-	}
-	if errors.Is(err, fs.ErrNotExist) {
-		return false, nil
-	}
-	return false, err
 }
