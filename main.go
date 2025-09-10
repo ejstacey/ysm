@@ -13,10 +13,16 @@ You should have received a copy of the GNU General Public License along with thi
 package main
 
 import (
+	"flag"
 	"fmt"
+	"os"
+	"path/filepath"
+	"text/template"
 
+	gap "github.com/muesli/go-app-paths"
 	_ "github.com/ncruces/go-sqlite3/driver"
 	_ "github.com/ncruces/go-sqlite3/embed"
+	cp "github.com/otiai10/copy"
 	"repo.joyrex.net/ejstacey/ysm/channel"
 	"repo.joyrex.net/ejstacey/ysm/tag"
 	"repo.joyrex.net/ejstacey/ysm/tui"
@@ -24,28 +30,124 @@ import (
 )
 
 func main() {
-	var channels channel.Channels
-	var tags tag.Tags
+	var installFlag = flag.Bool("install", false, "install the package files into their expected locations of your user environment")
+	flag.Parse()
+	if *installFlag {
+		userScope := gap.NewScope(gap.User, "ysm")
 
-	var settings = utils.LoadSettings()
+		result, err := utils.FileDirExists("./templates/default.tmpl")
+		utils.HandleError(err, "Checking for existence of install template data.")
+		if !result {
+			fmt.Printf("The ./templates/default.tmpl file is not found! If you run --install, you should do it from the uncompressed directory of the downloaded package file.\n")
+			os.Exit(1)
+		}
 
-	utils.InitDb(settings.DbFile)
+		result, err = utils.FileDirExists("./html")
+		utils.HandleError(err, "Checking for existence of install html data.")
+		if !result {
+			fmt.Printf("The ./html directory is not found! If you run --install, you should do it from the uncompressed directory of the downloaded package file.\n")
+			os.Exit(1)
+		}
 
-	fmt.Printf("Loading existing DB channel entries.\n")
-	channels.LoadEntriesFromDb()
+		result, err = utils.FileDirExists("./settings.sample.json.tmpl")
+		utils.HandleError(err, "Checking for existence of install settings sample.")
+		if !result {
+			fmt.Printf("The ./settings.sample.json.tmpl file is not found! If you run --install, you should do it from the uncompressed directory of the downloaded package file.\n")
+			os.Exit(1)
+		}
 
-	if settings.Refresh || len(channels.ById()) == 0 {
-		fmt.Printf("No existing DB entries found or Refresh was set to True in settings.json. Loading a fresh list from YouTube.\n\n")
-		var newChannels = channel.LoadChannelsYoutube()
-		channels.CompareAndUpdateChannelsDb(newChannels)
+		// set up templates.
+		templateDir, err := userScope.DataPath("templates")
+		utils.HandleError(err, "Could not determine user template path for installation!")
+		result, err = utils.FileDirExists(templateDir)
+		utils.HandleError(err, "Checking for existence of user data path.")
+		if !result {
+			os.MkdirAll(templateDir, 0755)
+		}
+		err = cp.Copy("./templates", templateDir)
+		utils.HandleError(err, "Could not copy templates directory to "+templateDir)
+		fmt.Println("Copied source templates to: " + templateDir)
+
+		// set up html dir.
+		htmlDir, err := userScope.DataPath("html")
+		utils.HandleError(err, "Could not determine user html path for installation!")
+		result, err = utils.FileDirExists(htmlDir)
+		utils.HandleError(err, "Checking for existence of user data path.")
+		if !result {
+			os.MkdirAll(htmlDir, 0755)
+		}
+		err = cp.Copy("./html", htmlDir)
+		utils.HandleError(err, "Could not copy html directory to "+htmlDir)
+		fmt.Println("Copied source html files to: " + htmlDir)
+
+		// set up a default settings file
+		configFile, err := userScope.ConfigPath("settings.json")
+		utils.HandleError(err, "Could not determine user data path for installation!")
+		settings := struct {
+			DataDir     string
+			OutputDir   string
+			TemplateDir string
+		}{
+			filepath.Dir(templateDir),
+			htmlDir,
+			templateDir,
+		}
+
+		var t *template.Template
+		input, err := os.ReadFile("./settings.sample.json.tmpl")
+		utils.HandleError(err, "Unable to open settings template.")
+
+		t = template.Must(template.New("default").Parse(string(input)))
+
+		dir := filepath.Dir(configFile)
+		result, err = utils.FileDirExists(dir)
+		utils.HandleError(err, "Checking for existence of config directory.")
+		if !result {
+			os.MkdirAll(dir, 0755)
+		}
+
+		fo, err := os.Create(configFile)
+		utils.HandleError(err, "Unable to open settings file.")
+
+		// close fo on exit and check for its returned error
+		defer func() {
+			err := fo.Close()
+			utils.HandleError(err, "Unable to close settings file.")
+		}()
+
+		err = t.Execute(fo, settings)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println("Created a default settings file at: " + configFile)
+		fmt.Println("")
+		fmt.Println("You should now be able to copy the ysm exectuable wherever you want. Wherever it goes, it should be in your PATH.")
+		fmt.Println("For Linux, ~/.local/bin can be a good option.")
+		fmt.Println("For other OSs, you are on your own. Sorry!")
+	} else {
+		var channels channel.Channels
+		var tags tag.Tags
+
+		var settings = utils.LoadSettings()
+
+		utils.InitDb(settings.DbFile)
+
+		fmt.Printf("Loading existing DB channel entries.\n")
 		channels.LoadEntriesFromDb()
+
+		if settings.Refresh || len(channels.ById()) == 0 {
+			fmt.Printf("No existing DB entries found or Refresh was set to True in settings.json. Loading a fresh list from YouTube.\n\n")
+			var newChannels = channel.LoadChannelsYoutube()
+			channels.CompareAndUpdateChannelsDb(newChannels)
+			channels.LoadEntriesFromDb()
+		}
+
+		fmt.Printf("Loading existing DB tag entries.\n")
+		tags.LoadEntriesFromDb()
+		// dump.Print(genTags)
+
+		tui.StartTea(channels, tags, settings)
 	}
-
-	fmt.Printf("Loading existing DB tag entries.\n")
-	tags.LoadEntriesFromDb()
-	// dump.Print(genTags)
-
-	tui.StartTea(channels, tags, settings)
 }
 
 // err := os.WriteFile("debug.log", []byte(dump.Format(tag)), 0644)

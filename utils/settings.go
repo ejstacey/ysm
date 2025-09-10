@@ -37,7 +37,6 @@ type Settings struct {
 
 func LoadSettings() Settings {
 	userScope := gap.NewScope(gap.User, "ysm")
-	systemScope := gap.NewScope(gap.System, "ysm")
 
 	var settings Settings
 	dbFile, err := userScope.DataPath("ysm.db")
@@ -51,7 +50,7 @@ func LoadSettings() Settings {
 	HandleError(err, "Could not determine user data path for output file!")
 	settings.Generator.OutputFile = outputFile
 
-	templateFile, err := systemScope.DataPath("templates/default.tmpl")
+	templateFile, err := userScope.DataPath("templates/default.tmpl")
 	HandleError(err, "Could not determine system data path for template file!")
 	settings.Generator.TemplateFile = templateFile
 

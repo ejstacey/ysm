@@ -9,7 +9,7 @@ Joyrex YSM is a TUI-based application (using [Bubble Tea](https://github.com/cha
 
 This was created as a way for me to learn/improve writing stuff in Go, but quickly turned into me learning how to use Bubble Tea, Lip Gloss and [The Elm Architecture](https://guide.elm-lang.org/architecture/). This is all to say that while the code is functional, there's very likely cleaner ways to write it. It's a great learning experience and I'm proud of it, though.
 
-You can see what the built-in generator output looks like [here](https://joyrex.net/ysm/).
+You can see what the built-in generator output looks like [on my homepage](https://joyrex.net/ysm/).
 
 ### Downloading
 
@@ -19,29 +19,49 @@ Official releases are on the [releases page](https://repo.joyrex.net/ejstacey/ys
 
 You can build this yourself by doing the following:
 
-    git clone https://repo.joyrex.net/ejstacey/ysm.git
-    cd ysm
-    go build .
+````sh
+git clone https://repo.joyrex.net/ejstacey/ysm.git
+cd ysm
+go build .
+````
+
+### Installing
+
+1. Download and extract the latest release package. In the directory, run:
+
+    ````sh
+    ./ysm --install
+    ````
+
+    This will install necessary files in their required locations for your user home directory. The script will tell you where it places files, but generally (assuming you have a pretty standard environment):
+
+    ````sh
+    Linux: ~/.local/share/ysm and ~/.config/ysm
+    Windows: %LOCALAPPDATA%/ys,
+    MacOS: ~/Library/Preferences/ysm
+    ````
+
+2. (Optional) Edit the default settings file if you'd like. The --install command gives you the file's location. Defaults are generally fine.
+
+3. (Optional) Copy the ysm (or ysm.exe) executable to a location within your system's PATH variable. For Linux, ~/.local/bin is generally a good choice.
 
 ### Running
 
-You need to create a settings.json before you start. You can modify it if you want, but the defaults are fine.
-
-    1. cp settings.sample.json settings.json
-    2. ./ysm
-    3. log into google and let it sync your subscriptions from youtube
-    4. hit 't' to go to the tags list menu, then 'n' to create a new tag.
-    5. fill in the tag info and submit it.
-    6. when you're done adding tags, hit 'c' to go to the channel list menu
-    7. select a channel and hit '<enter>' to go to the channel modify screen
-    8. add notes if required. on the tag select, use the arrow keys to move around the tags, then hit '<space>' to select the tag
-    9. submit when done/ready
-    10. when you've done all the channel noting/tagging you want, from the channel or tag list screen, hit 'g' to go to the generate pagepage
-    11. set/change info as wanted, the defaults are probably fine, but you can customise it as you get more used to it.
-    12. press 'q' on the channel/tag list screen to quit.
-    13. look at the html/ directory to see the page.
-    14. upload the contents of the html/ directory onto a web host somewhere.
-    15. send the link to your friends and enemies so they can see what you like on youtube.
+1. run ysm (or ysm.exe) in a console
+2. log into google and let it sync your subscriptions from youtube
+3. hit 't' to go to the tags list menu, then 'n' to create a new tag.
+4. fill in the tag info and submit it.
+5. when you're done adding tags, hit 'c' to go to the channel list menu
+6. select a channel and hit '&lt;enter&gt;' to go to the channel modify screen
+7. add notes if required. on the tag select, use the arrow keys to move around the tags, then hit '&lt;enter&gt;' to select the tag
+8. submit when done/ready
+9. when you've done all the channel noting/tagging you want, from the channel or tag list screen, hit 'g' to go to the generate pagepage
+10. set/change info as wanted, the defaults are probably fine, but you can customise it as you get more used to it.
+11. make note of the output file it generated.
+12. press 'q' on the channel/tag list screen to quit.
+13. look at the location given to see the page.
+14. upload the contents of the whole output directory (where your output file lives) onto a web host somewhere.
+15. send the link to your friends and enemies so they can see what you like on youtube.
 
 ### Help
 
@@ -81,7 +101,7 @@ The database is a simple sqlite database with three tables (diagram made with [d
 
 ### Youtube Access
 
-This program uses Google's OAuth to retrieve your subscription list. The only permission it uses is "youtube.YoutubeReadonlyScope" so it can grab your subscriptions. All data it grabs is stored locally on your machine. Nothing is sent to me/stored on my side/etc. The code for authenticating to youtube is [here](https://repo.joyrex.net/ejstacey/ysm/src/branch/main/utils/youtube.go) and the code for grabbing the subscriptions is [here](https://repo.joyrex.net/ejstacey/ysm/src/branch/main/channel/channel.go#L29).
+This program uses Google's OAuth to retrieve your subscription list. The only permission it uses is "youtube.YoutubeReadonlyScope" so it can grab your subscriptions. All data it grabs is stored locally on your machine. Nothing is sent to me/stored on my side/etc. The code for authenticating to youtube is [in this file](https://repo.joyrex.net/ejstacey/ysm/src/branch/main/utils/youtube.go) and the code for grabbing the subscriptions is [in this  file](https://repo.joyrex.net/ejstacey/ysm/src/branch/main/channel/channel.go#L29).
 
 Youtube subscription info is retrieved in two situations:
 

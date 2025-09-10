@@ -119,7 +119,7 @@ func tokenCacheFile() (string, error) {
 	HandleError(err, "Could not determine user config path for youtube credentials!")
 	tokenCacheDir := credDirs[0]
 	os.MkdirAll(tokenCacheDir, 0700)
-	return credScope.ConfigPath("ysm-youtube-creds.json")
+	return credScope.DataPath("ysm-youtube-creds.json")
 }
 
 // tokenFromFile retrieves a Token from a given file path.
