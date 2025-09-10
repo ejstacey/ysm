@@ -8,9 +8,13 @@ require (
 	github.com/ncruces/go-sqlite3 v0.22.0
 )
 
+require github.com/otiai10/mint v1.6.3 // indirect
+
 require (
 	github.com/charmbracelet/colorprofile v0.2.3-0.20250311203215-f60798e515dc // indirect
 	github.com/charmbracelet/x/cellbuf v0.0.13-0.20250311204145-2c3ea96c31dd // indirect
+	github.com/mitchellh/go-homedir v1.1.0 // indirect
+	github.com/muesli/go-app-paths v0.2.2
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 )
 
@@ -57,6 +61,7 @@ require (
 	github.com/charmbracelet/bubbletea v1.3.6
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect
+	github.com/otiai10/copy v1.14.1
 	golang.org/x/net v0.34.0 // indirect
 	golang.org/x/oauth2 v0.25.0
 	golang.org/x/sys v0.33.0 // indirect

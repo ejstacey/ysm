@@ -14,9 +14,11 @@ package utils
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 
 	"github.com/adhocore/jsonc"
+	gap "github.com/muesli/go-app-paths"
 )
 
 type GeneratorSettings struct {
@@ -34,14 +36,38 @@ type Settings struct {
 // My stuff
 
 func LoadSettings() Settings {
-	var settings Settings
-	settings.DbFile = "ysm.db"
-	settings.Refresh = false
-	settings.Generator.Title = "My Youtube Subscriptions"
-	settings.Generator.OutputFile = "html/index.html"
-	settings.Generator.TemplateFile = "templates/default.tmpl"
+	userScope := gap.NewScope(gap.User, "ysm")
 
-	input, err := os.ReadFile("settings.json")
+	var settings Settings
+	dbFile, err := userScope.DataPath("ysm.db")
+	HandleError(err, "Could not determine user data file!")
+	settings.DbFile = dbFile
+
+	settings.Refresh = true
+	settings.Generator.Title = "My Youtube Subscriptions"
+
+	outputFile, err := userScope.DataPath("html/index.html")
+	HandleError(err, "Could not determine user data path for output file!")
+	settings.Generator.OutputFile = outputFile
+
+	templateFile, err := userScope.DataPath("templates/default.tmpl")
+	HandleError(err, "Could not determine system data path for template file!")
+	settings.Generator.TemplateFile = templateFile
+
+	settingsFile, err := userScope.ConfigPath("settings.json")
+	HandleError(err, "Could not determine user config file!")
+	result, err := FileDirExists(settingsFile)
+	HandleError(err, "Checking for existence of user settings file.")
+	if !result {
+		fmt.Printf("No settings file exists. Creating default one at: " + settingsFile + ".\n")
+		out, err := json.Marshal(settings)
+		HandleError(err, "Could not generate default settings")
+		err = os.WriteFile(settingsFile, out, 0644)
+		HandleError(err, "Could not create settings file.")
+	}
+
+	fmt.Printf("Loading %s\n", settingsFile)
+	input, err := os.ReadFile(settingsFile)
 	HandleError(err, "Unable to open settings.json")
 
 	j := jsonc.New()

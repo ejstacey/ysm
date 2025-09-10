@@ -534,6 +534,7 @@ type Model struct {
 	colourPickerY              int
 	colourPickerTitle          string
 	selectedBackColour         string
+	lastOutputFile             string
 }
 
 func (m Model) Init() tea.Cmd {
@@ -1310,7 +1311,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 					gen.LoadTemplateFile()
 					gen.GenerateOutputFile()
-					m.current = "channel"
+					m.lastOutputFile = m.generatePageInputs[1].Value()
+					m.current = "verifyGenerate"
 					return m, nil
 				} else {
 					cmd = m.updateGeneratePageInput(msg)
@@ -1436,7 +1438,25 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				cmd = m.updateGeneratePageInput(msg)
 			}
 		}
+
+	case "verifyGenerate":
+		switch msg := msg.(type) {
+		case tea.WindowSizeMsg:
+			h, v := appStyle.GetFrameSize()
+			m.list.SetSize(msg.Width-h, msg.Height-v)
+
+		case tea.KeyMsg:
+			switch {
+			case key.Matches(msg, generatePageKeyList["escKey"]):
+				m.current = m.previous
+				return m, nil
+			case key.Matches(msg, generatePageKeyList["enterKey"]):
+				m.current = m.previous
+				return m, nil
+			}
+		}
 	}
+
 	cmds = append(cmds, cmd)
 
 	return m, tea.Batch(cmds...)
@@ -1816,6 +1836,25 @@ func (m Model) View() string {
 
 		out = b.String()
 
+	case "verifyGenerate":
+		var b strings.Builder
+		var sb strings.Builder
+
+		b.WriteString("Created/updated: " + m.lastOutputFile)
+
+		sb.WriteString(lipgloss.NewStyle().
+			BorderStyle(lipgloss.RoundedBorder()).
+			BorderForeground(lipgloss.Color("63")).
+			Padding(1, 2).
+			Width(b.Len() + 4).
+			Align(lipgloss.Center).
+			Render(b.String()))
+
+		sb.WriteRune('\n')
+
+		sb.WriteString(focusedButtonStyle.Render("[ ok ]"))
+
+		out = sb.String()
 	}
 	return appStyle.Render(out)
 }

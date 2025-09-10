@@ -1,9 +1,9 @@
 {
     // if refresh is set to False, and db channel data exists, it'll use existing db channel data (default)
-	// if refresh is set to True, or the db channel data doesn't exist, it'll contact youtube to get a subscription list
+    // if refresh is set to True, or the db channel data doesn't exist, it'll contact youtube to get a subscription list
     "Refresh": true,
-	// The name of the file to use for the db (default: 'ysm.db')
-    "DbFile": "ysm.db",
+    // The name of the file to use for the db (default: 'ysm.db')
+    "DbFile": "{{.DataDir}}/ysm.db",
     // Settings for generator, which is what makes the HTML file
     "Generator": {
         // Title on the page
@@ -11,9 +11,9 @@
         "Title": "My Youtube Subscriptions",
         // Name of the template file to use for generation
         // Default: "templates/default.tmpl"
-        "TemplateFile": "templates/default.tmpl",
+        "TemplateFile": "{{.TemplateDir}}/default.tmpl",
         // Name of the output HTML file to use for generation
         // Default: "html/index.html"
-        "OutputFile": "html/index.html"
+        "OutputFile": "{{.OutputDir}}/index.html"
     }
 }
