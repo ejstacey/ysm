@@ -33,28 +33,28 @@ func main() {
 	var installFlag = flag.Bool("install", false, "install the package files into their expected locations of your user environment")
 	flag.Parse()
 	if *installFlag {
-		userScope := gap.NewScope(gap.User, "ysm")
-
-		result, err := utils.FileDirExists("./templates/default.tmpl")
+		result, err := utils.FileDirExists(filepath.FromSlash("./templates/default.tmpl"))
 		utils.HandleError(err, "Checking for existence of install template data.")
 		if !result {
 			fmt.Printf("The ./templates/default.tmpl file is not found! If you run --install, you should do it from the uncompressed directory of the downloaded package file.\n")
 			os.Exit(1)
 		}
 
-		result, err = utils.FileDirExists("./html")
+		result, err = utils.FileDirExists(filepath.FromSlash("./html"))
 		utils.HandleError(err, "Checking for existence of install html data.")
 		if !result {
 			fmt.Printf("The ./html directory is not found! If you run --install, you should do it from the uncompressed directory of the downloaded package file.\n")
 			os.Exit(1)
 		}
 
-		result, err = utils.FileDirExists("./settings.sample.json.tmpl")
+		result, err = utils.FileDirExists(filepath.FromSlash("./settings.sample.json.tmpl"))
 		utils.HandleError(err, "Checking for existence of install settings sample.")
 		if !result {
 			fmt.Printf("The ./settings.sample.json.tmpl file is not found! If you run --install, you should do it from the uncompressed directory of the downloaded package file.\n")
 			os.Exit(1)
 		}
+
+		userScope := gap.NewScope(gap.User, "ysm")
 
 		// set up templates.
 		templateDir, err := userScope.DataPath("templates")
@@ -64,7 +64,7 @@ func main() {
 		if !result {
 			os.MkdirAll(templateDir, 0755)
 		}
-		err = cp.Copy("./templates", templateDir)
+		err = cp.Copy(filepath.FromSlash("./templates"), templateDir)
 		utils.HandleError(err, "Could not copy templates directory to "+templateDir)
 		fmt.Println("Copied source templates to: " + templateDir)
 
@@ -76,7 +76,7 @@ func main() {
 		if !result {
 			os.MkdirAll(htmlDir, 0755)
 		}
-		err = cp.Copy("./html", htmlDir)
+		err = cp.Copy(filepath.FromSlash("./html"), htmlDir)
 		utils.HandleError(err, "Could not copy html directory to "+htmlDir)
 		fmt.Println("Copied source html files to: " + htmlDir)
 
@@ -88,9 +88,9 @@ func main() {
 			OutputDir   string
 			TemplateDir string
 		}{
-			filepath.Dir(templateDir),
-			htmlDir,
-			templateDir,
+			utils.JsonEscape(filepath.FromSlash(filepath.Dir(templateDir) + "/")),
+			utils.JsonEscape(filepath.FromSlash(htmlDir + "/")),
+			utils.JsonEscape(filepath.FromSlash(templateDir + "/")),
 		}
 
 		var t *template.Template

@@ -13,6 +13,7 @@ You should have received a copy of the GNU General Public License along with thi
 package utils
 
 import (
+	"encoding/json"
 	"errors"
 	"io/fs"
 	"os"
@@ -27,4 +28,13 @@ func FileDirExists(path string) (bool, error) {
 		return false, nil
 	}
 	return false, err
+}
+
+func JsonEscape(i string) string {
+	b, err := json.Marshal(i)
+	if err != nil {
+		panic(err)
+	}
+	s := string(b)
+	return s[1 : len(s)-1]
 }
