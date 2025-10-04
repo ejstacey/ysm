@@ -156,7 +156,12 @@ func InstallApp() {
 	HandleError(err, "Unable to write settings file.")
 	fmt.Println("Created a default settings file at: " + configFile)
 
-	err = cp.Copy(filepath.Clean("./ysm"), filepath.Clean(binDir+"/ysm"))
+	var filename = "ysm"
+	if runtime.GOOS == "windows" {
+		filename += ".exe"
+	}
+
+	err = cp.Copy(filepath.Clean("./"+filename), filepath.Clean(binDir+"/"+filename))
 	HandleError(err, "Could not copy executable to "+binDir)
 	fmt.Println("Copied ysm executable to: " + binDir)
 
@@ -181,7 +186,7 @@ func InstallApp() {
 		fmt.Println("Found " + binDir + " in path. Yay!")
 	} else {
 		fmt.Println(binDir + " not found in your PATH. Do some searching to find out how to add " + binDir + " to your PATH.")
-		fmt.Println("Alternatively, just run ysm with: " + binDir + string(filepath.Separator) + "ysm")
+		fmt.Println("Alternatively, just run ysm with: " + binDir + string(filepath.Separator) + filename)
 	}
 }
 
