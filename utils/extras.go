@@ -39,7 +39,6 @@ func FileDirExists(path string) (bool, error) {
 	return false, err
 }
 
-<<<<<<< HEAD
 func InstallApp() {
 	userScope := gap.NewScope(gap.User, "ysm")
 
@@ -207,8 +206,6 @@ func VerifyInstallation() {
 	}
 }
 
-=======
->>>>>>> 92162236677c23f90d2c3eea2afb9b48e9787533
 func JsonEscape(i string) string {
 	b, err := json.Marshal(i)
 	if err != nil {
