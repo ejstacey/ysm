@@ -121,9 +121,9 @@ func InstallApp() {
 		OutputDir   string
 		TemplateDir string
 	}{
-		filepath.Dir(templateDir),
-		htmlDir,
-		templateDir,
+		filepath.Dir(templateDir) + string(filepath.Separator),
+		htmlDir + string(filepath.Separator),
+		templateDir + string(filepath.Separator),
 	}
 
 	var t *template.Template
