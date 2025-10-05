@@ -13,6 +13,7 @@ You should have received a copy of the GNU General Public License along with thi
 package utils
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"html/template"
@@ -203,4 +204,13 @@ func VerifyInstallation() {
 		fmt.Println("Could not find required directories. Please run the program with the --install argument.")
 		os.Exit(1)
 	}
+}
+
+func JsonEscape(i string) string {
+	b, err := json.Marshal(i)
+	if err != nil {
+		panic(err)
+	}
+	s := string(b)
+	return s[1 : len(s)-1]
 }

@@ -1209,8 +1209,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.current = m.previous
 				return m, nil
 			case key.Matches(msg, generatePageKeyList["enterKey"]):
-				var totalLength = len(m.generatePageInputs) + 1
-
+				var totalLength = len(m.generatePageInputs) + 2 - 1 // for clarity, the -1 is because everything is 0-started
 				// Did the user press enter while the submit button was focused?
 				// If so, create it.
 				if m.generatePageFocus == totalLength {
@@ -1322,7 +1321,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 				_, colCount, rowCount := calculateRowCount()
 
-				var totalLength = len(m.generatePageInputs) + rowCount
+				var totalLength = len(m.generatePageInputs) + 2 - 1 // for clarity, the -1 is because everything is 0-started
 
 				// Cycle indexes
 				// if there's no tags, don't use the second focus
@@ -1334,7 +1333,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					if s == "up" || s == "shift+tab" {
 						m.generatePageSelectedTagId = m.generatePageSelectedTagId - colCount
 						if m.generatePageSelectedTagId < 0 {
-							m.generatePageSelectedTagId = m.generatePageSelectedTagId + colCount
+							m.generatePageSelectedTagId = (colCount * rowCount) + m.generatePageSelectedTagId
 							m.generatePageFocus--
 						}
 					} else {
@@ -1354,16 +1353,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 				if m.generatePageFocus > totalLength {
 					m.generatePageFocus = 0
-					m.generatePageSelectedTagId = m.generatePageSelectedTagId - colCount
-					if m.generatePageSelectedTagId < 0 {
-						m.generatePageSelectedTagId = colCount + (m.generatePageSelectedTagId - colCount)
+					for ; m.generatePageSelectedTagId >= colCount; m.generatePageSelectedTagId = m.generatePageSelectedTagId - colCount {
 					}
 				} else if m.generatePageFocus < 0 {
 					m.generatePageFocus = totalLength
-					m.generatePageSelectedTagId = m.generatePageSelectedTagId + colCount
-					if m.generatePageSelectedTagId >= len(m.tags.ById()) {
-						m.generatePageSelectedTagId = rowCount*colCount + (len(m.tags.ById()) % colCount)
+					for ; m.generatePageSelectedTagId < len(m.tags.ById()); m.generatePageSelectedTagId = m.generatePageSelectedTagId + colCount {
 					}
+					m.generatePageSelectedTagId = m.generatePageSelectedTagId - colCount
 				}
 
 				cmds := make([]tea.Cmd, totalLength)
@@ -1527,7 +1523,9 @@ func (m Model) View() string {
 		// the 5 is the help height (plus some)
 		_, h, _ := term.GetSize(os.Stdout.Fd())
 		height := h - strings.Count(b.String(), "\n") - 5
-		b.WriteString(strings.Repeat("\n", height))
+		if height > 0 {
+			b.WriteString(strings.Repeat("\n", height))
+		}
 
 		help := help.New()
 		help.ShowAll = true
@@ -1640,7 +1638,9 @@ func (m Model) View() string {
 		// the 5 is the help height (plus some)
 		_, h, _ := term.GetSize(os.Stdout.Fd())
 		height := h - strings.Count(b.String(), "\n") - 5
-		b.WriteString(strings.Repeat("\n", height))
+		if height > 0 {
+			b.WriteString(strings.Repeat("\n", height))
+		}
 
 		channelModifyNotesKeyMap := newChannelModifyNotesKeyMap()
 		channelModifyTagSelectKeyMap := newChannelModifyTagSelectKeyMap()
@@ -1690,7 +1690,9 @@ func (m Model) View() string {
 		// the 5 is the help height (plus some)
 		_, h, _ := term.GetSize(os.Stdout.Fd())
 		height := h - strings.Count(b.String(), "\n") - 5
-		b.WriteString(strings.Repeat("\n", height))
+		if height > 0 {
+			b.WriteString(strings.Repeat("\n", height))
+		}
 
 		help := help.New()
 		help.ShowAll = true
@@ -1736,7 +1738,9 @@ func (m Model) View() string {
 		_, h, _ := term.GetSize(os.Stdout.Fd())
 		// the 5 is the help height 9plus some)
 		height := h - strings.Count(b.String(), "\n") - 5
-		b.WriteString(strings.Repeat("\n", height))
+		if height > 0 {
+			b.WriteString(strings.Repeat("\n", height))
+		}
 
 		colourPickerKeyMap := newColourPickerKeyMap()
 
@@ -1760,15 +1764,16 @@ func (m Model) View() string {
 
 		_, colCount, _ := calculateRowCount()
 
+		var totalLength = len(m.generatePageInputs) + 2 - 1 // for clarity, the -1 is because everything is 0-started
+
 		var output string
 		var curCol = 0
 		for i, tagName := range sortedTags {
 			tag := m.tags.ByName()[tagName]
 			var style = tagDisplayStyle.Width(len(tagName)).Background(lipgloss.Color("#" + tag.BgColour())).Foreground(lipgloss.Color("#" + tag.FgColour())).Margin(1)
 
-			var selected = true
 			// previously selected
-			selected = false
+			var selected = false
 			for _, testId := range m.generatePageSelectedTagIds {
 				if testId == i {
 					selected = true
@@ -1800,7 +1805,7 @@ func (m Model) View() string {
 		}
 
 		var buttonRef *lipgloss.Style
-		if m.generatePageFocus == len(m.generatePageInputs)+1 {
+		if m.generatePageFocus == totalLength {
 			buttonRef = &focusedButtonStyle
 		} else {
 			buttonRef = &blurredButtonStyle
@@ -1811,10 +1816,14 @@ func (m Model) View() string {
 		b.WriteRune('\n')
 		b.WriteRune('\n')
 
+		// b.WriteString(fmt.Sprintf("generatePageFocus: %d - total: %d, elements: %d, rowCount: %d, sortedTags: %d, colCount: %d, m.generatePageSelectedTagId: %d", m.generatePageFocus, totalLength, len(m.generatePageInputs), rowCount, len(sortedTags), colCount, m.generatePageSelectedTagId))
+
 		_, h, _ := term.GetSize(os.Stdout.Fd())
 		// the 5 is the help height 9plus some)
 		height := h - strings.Count(b.String(), "\n") - 5
-		b.WriteString(strings.Repeat("\n", height))
+		if height > 0 {
+			b.WriteString(strings.Repeat("\n", height))
+		}
 
 		generatePageInputKeyMap := newGeneratePageInputKeyMap()
 		generatePageSelectKeyMap := newGeneratePageSelectKeyMap()
@@ -1911,7 +1920,12 @@ func calculateRowCount() (int, int, int) {
 	}
 	cellSize += 2
 	w, _, _ := term.GetSize(os.Stdout.Fd())
-	colCount := w / cellSize
+	var colCount int
+	if cellSize*len(sortedTags) < w {
+		colCount = len(sortedTags)
+	} else {
+		colCount = w / cellSize
+	}
 
 	rowCount := len(sortedTags) / colCount
 
