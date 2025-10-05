@@ -28,9 +28,10 @@ type GeneratorSettings struct {
 }
 
 type Settings struct {
-	Refresh   bool              `json:"Refresh"`
-	DbFile    string            `json:"DbFile"`
-	Generator GeneratorSettings `json:"Generator"`
+	Refresh      bool              `json:"Refresh"`
+	DbFile       string            `json:"DbFile"`
+	Generator    GeneratorSettings `json:"Generator"`
+	BackupCopies int               `json:"BackupCopies"`
 }
 
 // My stuff
@@ -54,16 +55,15 @@ func LoadSettings() Settings {
 	HandleError(err, "Could not determine system data path for template file!")
 	settings.Generator.TemplateFile = templateFile
 
+	settings.BackupCopies = 7
+
 	settingsFile, err := userScope.ConfigPath("settings.json")
 	HandleError(err, "Could not determine user config file!")
 	result, err := FileDirExists(settingsFile)
 	HandleError(err, "Checking for existence of user settings file.")
 	if !result {
-		fmt.Printf("No settings file exists. Creating default one at: " + settingsFile + ".\n")
-		out, err := json.Marshal(settings)
-		HandleError(err, "Could not generate default settings")
-		err = os.WriteFile(settingsFile, out, 0644)
-		HandleError(err, "Could not create settings file.")
+		fmt.Println("Settings file " + settingsFile + " not found. Do you need to run --install?")
+		os.Exit(1)
 	}
 
 	fmt.Printf("Loading %s\n", settingsFile)

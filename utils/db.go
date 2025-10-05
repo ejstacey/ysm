@@ -14,6 +14,13 @@ package utils
 
 import (
 	"database/sql"
+	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
+
+	cp "github.com/otiai10/copy"
 )
 
 var DbConn *sql.DB
@@ -63,4 +70,39 @@ func InitDb(dbFile string) {
 	HandleError(err, "Unable to create links table")
 
 	DbConn = db
+}
+
+func BackupDbFile(dbFile string, backupCopies int) {
+	result, err := FileDirExists(dbFile)
+	HandleError(err, "Checking for existence of existing dbFile.")
+	if result {
+		timeRec := time.Now()
+		timeStamp := timeRec.Format(time.DateOnly) + "-" + strings.ReplaceAll(timeRec.Format(time.TimeOnly), ":", "-")
+
+		// Make sure backups dir exists
+		backupPath := filepath.Clean(filepath.Dir(dbFile)+"/backups/") + string(filepath.Separator)
+		backupPathCheck, err := FileDirExists(backupPath)
+		HandleError(err, "Checking for existence of backup path.")
+		if !backupPathCheck {
+			os.MkdirAll(backupPath, 0755)
+		}
+
+		// Save the file
+		backupName := backupPath + filepath.Base(dbFile) + "-backup-" + timeStamp
+		err = cp.Copy(dbFile, backupName)
+		HandleError(err, "Could not create backup of database file "+dbFile+" to "+backupName)
+		fmt.Println("Created backup copy of database to " + backupName)
+
+		// Clean up anything over backupCopies
+		entries, err := os.ReadDir(backupPath)
+		HandleError(err, "Could not open backups directory "+backupPath)
+
+		if len(entries) > backupCopies {
+			toDelete := backupPath + entries[0].Name()
+			err := os.Remove(toDelete)
+			HandleError(err, "Could not remove file "+toDelete)
+
+			fmt.Println("Removed old backup file: " + toDelete)
+		}
+	}
 }
