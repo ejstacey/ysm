@@ -37,13 +37,15 @@ go build .
 
     ````sh
     Linux: ~/.local/share/ysm and ~/.config/ysm
-    Windows: %LOCALAPPDATA%/ys,
-    MacOS: ~/Library/Preferences/ysm
+    Windows: %LOCALAPPDATA%/ysm,
+    MacOS: ~/Library/Preferences/ysm and ~/Library/Application Data/ysm
     ````
+
+    It also installs the ysm executable into ~/.local/bin, creating the directory first if it needs to.
 
 2. (Optional) Edit the default settings file if you'd like. The --install command gives you the file's location. Defaults are generally fine.
 
-3. (Optional) Copy the ysm (or ysm.exe) executable to a location within your system's PATH variable. For Linux, ~/.local/bin is generally a good choice.
+3. (Optional) Make sure ~/.local/bin is in your PATH.
 
 ### Running
 
