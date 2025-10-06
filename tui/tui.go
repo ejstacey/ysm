@@ -971,14 +971,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case key.Matches(msg, channelModifyKeyList["nextKey"], channelModifyKeyList["prevKey"]):
 				s := msg.String()
 
-				_, colCount, rowCount := calculateRowCount()
+				_, colCount, _ := calculateRowCount()
 
-				var totalLength = 1 + rowCount + 1
+				// var totalLength = 1 + rowCount + 1
+				var totalLength = len(m.channelModifyInputs) + 2 - 1 // for clarity, the -1 is because everything is 0-started
 
 				// Cycle indexes
 				// if there's no tags, don't use the second focus
-				if m.generatePageFocus == 1 && len(m.tags.ById()) == 0 {
-					m.generatePageFocus++
+				if m.channelModifyFocus == 1 && len(m.tags.ById()) == 0 {
+					m.channelModifyFocus++
 				}
 
 				if m.channelModifyFocus == 1 {
@@ -1005,16 +1006,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 				if m.channelModifyFocus > totalLength {
 					m.channelModifyFocus = 0
-					m.selectedTagId = m.selectedTagId - colCount
-					if m.selectedTagId < 0 {
-						m.selectedTagId = colCount + (m.selectedTagId - colCount)
+					for ; m.selectedTagId >= colCount; m.selectedTagId = m.selectedTagId - colCount {
 					}
 				} else if m.channelModifyFocus < 0 {
 					m.channelModifyFocus = totalLength
-					m.selectedTagId = m.selectedTagId + colCount
-					if m.selectedTagId >= len(m.tags.ById()) {
-						m.selectedTagId = rowCount*colCount + (len(m.tags.ById()) % colCount)
+					for ; m.selectedTagId < len(m.tags.ById()); m.selectedTagId = m.selectedTagId + colCount {
 					}
+					m.selectedTagId = m.selectedTagId - colCount
 				}
 
 				cmds := make([]tea.Cmd, totalLength)
@@ -1633,6 +1631,9 @@ func (m Model) View() string {
 		b.WriteString(style.Render("this colour signifies there's unsaved changes"))
 		b.WriteRune('\n')
 		b.WriteRune('\n')
+		var totalLength = len(m.channelModifyInputs) + 2 - 1 // for clarity, the -1 is because everything is 0-started
+
+		b.WriteString(fmt.Sprintf("channelModifyFocus: %d - elements: %d, sortedTags: %d, colCount: %d, m.selectedTagId: %d, totalLength: %d", m.channelModifyFocus, len(m.channelModifyInputs), len(sortedTags), colCount, m.selectedTagId, totalLength))
 
 		// the 5 is the help height (plus some)
 		_, h, _ := term.GetSize(os.Stdout.Fd())
