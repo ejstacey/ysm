@@ -1319,7 +1319,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case key.Matches(msg, generatePageKeyList["nextKey"], generatePageKeyList["prevKey"]):
 				s := msg.String()
 
-				_, colCount, rowCount := calculateRowCount()
+				_, colCount, _ := calculateRowCount()
 
 				var totalLength = len(m.generatePageInputs) + 2 - 1 // for clarity, the -1 is because everything is 0-started
 
@@ -1333,7 +1333,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					if s == "up" || s == "shift+tab" {
 						m.generatePageSelectedTagId = m.generatePageSelectedTagId - colCount
 						if m.generatePageSelectedTagId < 0 {
-							m.generatePageSelectedTagId = (colCount * rowCount) + m.generatePageSelectedTagId
+							m.generatePageSelectedTagId = colCount + m.generatePageSelectedTagId
 							m.generatePageFocus--
 						}
 					} else {
@@ -1611,14 +1611,13 @@ func (m Model) View() string {
 
 			output = lipgloss.JoinHorizontal(lipgloss.Center, output, style.Render(tagName))
 
-			if (colCount > 2 && curCol > 2 && int(math.Mod(float64(colCount), float64(i+1))) == 0) || i == len(sortedTags)-1 || (colCount <= 2 && curCol+1 == colCount) || curCol+2 > colCount {
+			if (colCount > 2 && curCol > 2 && (int(math.Mod(float64(colCount), float64(curCol+1))) == 0) && int(colCount/curCol) == 1) || i == len(sortedTags)-1 || (colCount <= 2 && curCol == colCount) || curCol > colCount {
 				b.WriteString(output)
 				output = ""
 				curCol = 0
 			} else {
 				curCol++
 			}
-
 		}
 
 		var buttonRef *lipgloss.Style
@@ -1794,7 +1793,7 @@ func (m Model) View() string {
 
 			output = lipgloss.JoinHorizontal(lipgloss.Center, output, style.Render(tagName))
 
-			if (colCount > 2 && curCol > 2 && int(math.Mod(float64(colCount), float64(i+1))) == 0) || i == len(sortedTags)-1 || (colCount <= 2 && curCol+1 == colCount) || curCol+2 > colCount {
+			if (colCount > 2 && curCol > 2 && (int(math.Mod(float64(colCount), float64(curCol+1))) == 0) && int(colCount/curCol) == 1) || i == len(sortedTags)-1 || (colCount <= 2 && curCol == colCount) || curCol > colCount {
 				b.WriteString(output)
 				output = ""
 				curCol = 0
@@ -1816,7 +1815,7 @@ func (m Model) View() string {
 		b.WriteRune('\n')
 		b.WriteRune('\n')
 
-		// b.WriteString(fmt.Sprintf("generatePageFocus: %d - total: %d, elements: %d, rowCount: %d, sortedTags: %d, colCount: %d, m.generatePageSelectedTagId: %d", m.generatePageFocus, totalLength, len(m.generatePageInputs), rowCount, len(sortedTags), colCount, m.generatePageSelectedTagId))
+		// b.WriteString(fmt.Sprintf("generatePageFocus: %d - total: %d, elements: %d, sortedTags: %d, colCount: %d, m.generatePageSelectedTagId: %d, mod: %d", m.generatePageFocus, totalLength, len(m.generatePageInputs), len(sortedTags), colCount, m.generatePageSelectedTagId, int(math.Mod(float64(colCount), float64(3)))))
 
 		_, h, _ := term.GetSize(os.Stdout.Fd())
 		// the 5 is the help height 9plus some)
